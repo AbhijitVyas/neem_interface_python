@@ -2,6 +2,9 @@ from rosprolog_client import Prolog, atom
 
 pq = Prolog()
 
+# load local neem to Knowledge base
+pq.ensure_once("remember('/home/avyas/catkin_ws/src/pouring_hands_neem/NEEM-1')")
+
 # find all actions
 #print(pq.all_solutions("is_action(A)"))
 
