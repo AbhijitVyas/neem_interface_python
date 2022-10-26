@@ -5,8 +5,8 @@ import time
 
 from tqdm import tqdm
 
-from neem_interface_python.rosprolog_client import Prolog, atom
-from neem_interface_python.utils.utils import Datapoint, Pose
+from rosprolog_client import Prolog, atom
+from utils.utils import Datapoint, Pose
 
 SCRIPT_DIR = os.path.dirname(os.path.abspath(__file__))
 

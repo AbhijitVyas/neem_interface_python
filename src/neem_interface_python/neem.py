@@ -1,7 +1,7 @@
 from typing import List
 
-from neem_interface_python.neem_interface import NEEMInterface
-from neem_interface_python.rosprolog_client import Prolog, atom
+from neem_interface import NEEMInterface
+from rosprolog_client import Prolog, atom
 
 
 class NEEM:
