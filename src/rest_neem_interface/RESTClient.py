@@ -35,11 +35,12 @@ def get_neem_to_load_into_kb():
 #        return jsonify(response), 400
 
 
-#@app.route("/insert_knowledge/<subject>/<predicate>/<object>")
-#def clear_knowledge_base(subject, predicate, object):
-#    response = NEEMData().
-#    if response is not None:
-#        return jsonify("successfully wiped-out mongodb kb"), 200
-#
-#    else:
-#        return jsonify(response), 400
+@app.route("/get_all_actions")
+def get_all_actions():
+    response = NEEMData().get_all_actions()
+    if response is not None:
+        print(response)
+        return jsonify(response), 200
+
+    else:
+        return jsonify(response), 400

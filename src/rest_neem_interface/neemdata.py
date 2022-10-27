@@ -32,6 +32,12 @@ class NEEMData(object):
         response = self.prolog.ensure_once(f"remember({atom(neem_uri)})")
         return response
 
+    def get_all_actions(self):
+        # prolog exception will be raised if response is none
+        response = self.prolog.ensure_once("findall([Act],is_action(Act), Act)")
+        print(response)
+        return response
+
     # this method loads remote neem from neemhub to local kb(but do not populate local mongodb)
     #def load_remote_neem_to_kb(self, neem_id):
     #    self.prolog.ensure_once(f"knowrob_load_neem({atom(neem_id)})")
