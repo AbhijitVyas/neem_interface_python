@@ -35,9 +35,17 @@ class NEEMData(object):
     def get_all_actions(self):
         # prolog exception will be raised if response is none
         response = self.prolog.ensure_once("findall([Act],is_action(Act), Act)")
-        print(response)
         return response
 
+    def get_all_actions_start_timestamps(self):
+        # prolog exception will be raised if response is none
+        response = self.prolog.ensure_once("findall([Begin, Evt], event_interval(Evt, Begin, _), StartTimes)")
+        return response
+
+    def get_all_objects_participates_in_actions(self):
+        # prolog exception will be raised if response is none
+        response = self.prolog.ensure_once("findall([Act, Obj], has_participant(Act, Obj), Obj)")
+        return response
     # this method loads remote neem from neemhub to local kb(but do not populate local mongodb)
     #def load_remote_neem_to_kb(self, neem_id):
     #    self.prolog.ensure_once(f"knowrob_load_neem({atom(neem_id)})")

@@ -39,8 +39,24 @@ def get_neem_to_load_into_kb():
 def get_all_actions():
     response = NEEMData().get_all_actions()
     if response is not None:
-        print(response)
         return jsonify(response), 200
+    else:
+        return jsonify(response), 400
 
+
+@app.route("/get_all_actions_start_time")
+def get_all_actions_start_time_stamps():
+    response = NEEMData().get_all_actions_start_timestamps()
+    if response is not None:
+        return jsonify(response), 200
+    else:
+        return jsonify(response), 400
+
+
+@app.route("/get_all_objects_participates_in_actions")
+def get_all_objects_participates_in_actions():
+    response = NEEMData().get_all_objects_participates_in_actions()
+    if response is not None:
+        return jsonify(response), 200
     else:
         return jsonify(response), 400
