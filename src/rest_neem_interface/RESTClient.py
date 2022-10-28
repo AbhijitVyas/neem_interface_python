@@ -60,3 +60,13 @@ def get_all_objects_participates_in_actions():
         return jsonify(response), 200
     else:
         return jsonify(response), 400
+
+
+@app.route("/get_handpose_at_start_of_action")
+def get_handpose_at_start_of_action():
+    response = NEEMData().get_handpose_at_start_of_action()
+    if response is not None:
+        return jsonify(response), 200
+    else:
+        return jsonify(response), 400
+    
