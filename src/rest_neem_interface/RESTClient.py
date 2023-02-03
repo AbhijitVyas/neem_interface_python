@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 import os
-from flask import Flask, jsonify
+from flask import Flask, render_template, jsonify, request
 from flask_restful import Resource, Api, reqparse
 import pandas as pd
 from .neemdata import NEEMData
@@ -187,4 +187,56 @@ def get_hand_used_for_pouring():
         return jsonify(response), 200
     else:
         return jsonify(response), 400
-    
+
+
+######################## VR NEEM logging ########################
+
+
+@app.route("/create_actor", methods = ['GET'])
+def create_actor():
+    response = NEEMData().create_actor()
+    if response is not None:
+        return jsonify(response), 200
+    else:
+        return jsonify(response), 400
+
+
+@app.route("/get_actor", methods = ['GET'])
+def get_actor():
+    response = NEEMData().get_actor()
+    if response is not None:
+        return jsonify(response), 200
+    else:
+        return jsonify(response), 400
+
+# @app.route("/get_time", methods = ['GET'])
+# def get_time():
+#     response = NEEMData().get_time()
+#     if response is not None:
+#         return jsonify(response), 200
+#     else:
+#         return jsonify(response), 400
+
+
+@app.route("/add_subaction_with_task", methods = ['GET', 'POST'])
+def post_add_subaction_with_task():
+    parent_action_iri = request.json['parent_action_iri']
+    sub_action_type = request.json['sub_action_type']
+    task_type = request.json['task_type']
+    start_time = request.json['start_time']
+    end_time = request.json['end_time']
+    actor_iri = request.json['actor_iri']
+    response = NEEMData().add_subaction_with_task(parent_action_iri, actor_iri, sub_action_type, task_type, start_time, end_time)
+    if response is not None:
+        return jsonify(response), 200
+    else:
+        return jsonify(response), 400
+
+
+@app.route("/create_episode")
+def create_episode():
+    response = NEEMData().create_episode()
+    if response is not None:
+        return jsonify(response), 200
+    else:
+        return jsonify(response), 400

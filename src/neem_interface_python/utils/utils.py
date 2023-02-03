@@ -3,7 +3,7 @@ from typing import List
 from scipy.spatial.transform import Rotation
 import dateutil.parser
 
-from rosprolog_client import atom, Prolog
+from src.neem_interface_python.rosprolog_client import atom, Prolog
 
 
 class Pose:

@@ -5,8 +5,8 @@ import time
 
 from tqdm import tqdm
 
-from rosprolog_client import Prolog, atom
-from utils.utils import Datapoint, Pose
+from src.neem_interface_python.rosprolog_client import Prolog, atom
+from src.neem_interface_python.utils.utils import Datapoint, Pose
 
 SCRIPT_DIR = os.path.dirname(os.path.abspath(__file__))
 
@@ -26,8 +26,9 @@ class NEEMInterface:
         self.pool_executor = ThreadPoolExecutor(max_workers=4)
 
         # Load neem-interface.pl into KnowRob
-        neem_interface_path = os.path.join(SCRIPT_DIR, os.pardir, "neem-interface", "neem-interface.pl")
-        self.prolog.ensure_once(f"ensure_loaded({atom(neem_interface_path)})")
+        neem_interface_path = "/home/avyas/catkin_ws/src/neem_interface_python/src/neem-interface/neem-interface/neem-interface.pl"
+        print("neem interface path", neem_interface_path)
+        self.prolog.ensure_once("ensure_loaded('" + neem_interface_path + "')")
 
     def __del__(self):
         # Wait for all currently running futures
@@ -157,8 +158,9 @@ class NEEMInterface:
             qs_query = f"time_scope({start_time}, {time.time()}, QS)"
         else:
             qs_query = f"time_scope({time.time()}, {time.time()}, QS)"
-        self.prolog.ensure_once(f"tf_logger_enable, {qs_query}, tf_set_pose({atom(obj_iri)}, {obj_pose.to_knowrob_string()}, QS),"
-                                f"tf_logger_disable")
+        self.prolog.ensure_once(
+            f"tf_logger_enable, {qs_query}, tf_set_pose({atom(obj_iri)}, {obj_pose.to_knowrob_string()}, QS),"
+            f"tf_logger_disable")
 
     def assert_object_trajectory(self, obj_iri: str, obj_poses: List[Pose], start_times: List[float],
                                  end_times: List[float], insert_last_pose_synchronously=True):
@@ -185,7 +187,7 @@ class NEEMInterface:
         self.prolog.ensure_once(f"mem_clear_memory, remember({atom(neem_path)})")
 
     def get_all_actions(self, action_type: str = None) -> List[str]:
-        if action_type is not None: # Filter by action type
+        if action_type is not None:  # Filter by action type
             query = f"is_action(Action), instance_of(Action, {atom(action_type)})"
         else:
             query = "is_action(Action)"
@@ -199,7 +201,7 @@ class NEEMInterface:
     def get_all_states(self) -> List[str]:
         res = self.prolog.ensure_all_solutions("is_state(State)")
         if len(res) > 0:
-            return list(set([dic["State"] for dic in res])) # Deduplicate
+            return list(set([dic["State"] for dic in res]))  # Deduplicate
         else:
             raise NEEMError("Failed to find any states")
 
@@ -239,7 +241,7 @@ class NEEMInterface:
         """
         res = self.prolog.ensure_all_solutions(f"""kb_call(holds({atom(subject)}, {atom(predicate)}, X))""")
         if len(res) > 0:
-            return list(set([dic["X"] for dic in res])) # Deduplicate
+            return list(set([dic["X"] for dic in res]))  # Deduplicate
         else:
             raise NEEMError("Failed to find any objects for triple")
 
@@ -251,9 +253,75 @@ class NEEMInterface:
         """
         res = self.prolog.ensure_all_solutions(f"""kb_call(holds(X, {atom(predicate)}, {atom(object)}))""")
         if len(res) > 0:
-            return list(set([dic["X"] for dic in res])) # Deduplicate
+            return list(set([dic["X"] for dic in res]))  # Deduplicate
         else:
             raise NEEMError("Failed to find any subjects for triple")
+
+    ################ VR experiment related calls #################
+
+    def create_actor(self):
+        # create an actor
+        naturalPersonQueryResponse = self.prolog.ensure_once(f"""
+                kb_project([
+                    new_iri(Actor, dul:'NaturalPerson'), has_type(Actor, dul:'NaturalPerson')
+                ]).
+            """)
+        print("new Actor iri", naturalPersonQueryResponse["Actor"])
+        return naturalPersonQueryResponse
+
+    def get_actor(self):
+        response = self.prolog.ensure_once("findall([Actor],(is_agent(Actor), has_type(Actor, dul:'NaturalPerson')), Actor)")
+        print("response with actor: ", response)
+        return response
+    
+    def get_time(self):
+        response = self.prolog.ensure_once("get_time(Time)")
+        print("response with time: ", response)
+        return response
+    
+    def add_vr_subaction_with_task(self, parent_action_iri, actor_iri, sub_action_type="dul:'Action'",
+                                   task_type="dul:'Task'",
+                                   start_time: float = None, end_time: float = None) -> str:
+        
+        actionQueryResponse = self.prolog.ensure_once(f"""
+                kb_project([
+                    new_iri(SubAction, {atom(sub_action_type)}), has_type(SubAction, {atom(sub_action_type)}),
+                    new_iri(Task, {atom(task_type)}), has_type(Task,{atom(task_type)}), executes_task(SubAction,Task),
+                    triple({atom(parent_action_iri)}, dul:hasConstituent, SubAction),
+                    has_type({atom(actor_iri)}, dul:'NaturalPerson'), is_performed_by(SubAction,{atom(actor_iri)})
+                ]).
+            """)
+        return actionQueryResponse
+
+
+    def start_vr_episode(self):
+        """
+        Start an episode and return the prolog atom for the corresponding action.
+        """
+        # get an actor if it exists otherwise create a new one
+        actor = self.get_actor()
+        print("get actor: ", actor["Actor"][0][0])
+        if not 'Actor' in actor or len(actor['Actor']) == 0:
+            actor = self.create_actor()
+
+        # get star time for action 
+        time = self.get_time()
+        print("get time: ", time["Time"])
+        episodeQueryResponse = self.prolog.ensure_once(f"""
+                kb_project([
+                    new_iri(Episode, soma:'Episode'), has_type(Episode, soma:'Episode'),
+                    new_iri(Action, dul:'Action'), has_type(Action, dul:'Action'),
+                    new_iri(TimeInterval, dul:'TimeInterval'), holds(Action, dul:'hasTimeInterval', TimeInterval),
+                    holds(TimeInterval, soma:'hasIntervalBegin', {time["Time"]}),
+                    new_iri(Task, dul:'Task'), has_type(Task,dul:'Task'), executes_task(Action,Task),
+                    is_setting_for(Episode,Task),
+                    triple(Episode, dul:includesAction, Action),
+                    has_type({atom(actor["Actor"][0][0])}, dul:'NaturalPerson'), is_performed_by(Action,{atom(actor["Actor"][0][0])}),
+                    triple(Episode, dul:includesAgent, {atom(actor["Actor"][0][0])}),
+                    new_iri(Role, soma:'AgentRole'), has_type(Role, soma:'AgentRole'), has_role({atom(actor["Actor"][0][0])},Role)
+                ]).
+            """)
+        return episodeQueryResponse
 
 
 class Episode:

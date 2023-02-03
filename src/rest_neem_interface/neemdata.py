@@ -5,6 +5,9 @@ from typing import List, Tuple, Optional
 import time
 
 from src.neem_interface_python.rosprolog_client import Prolog, atom
+from src.neem_interface_python.neem_interface import NEEMInterface
+
+
 
 SCRIPT_DIR = os.path.dirname(os.path.abspath(__file__))
 neem_uri = '/home/avyas/catkin_ws/src/pouring_apartment_neem/NEEM'
@@ -16,6 +19,7 @@ class NEEMData(object):
 
     def __init__(self):
         self.prolog = Prolog()
+        self.neem_interface = NEEMInterface()
      
     # not working at the moment    
     #def clear_beliefstate(self):
@@ -142,6 +146,30 @@ class NEEMData(object):
         response = self.prolog.once("has_type(Tsk, 'http://www.ease-crc.org/ont/SOMA-ACT.owl#Pouring'),executes_task(Act, Tsk), has_type(Hand, soma:'Hand')")
         print("response with poses: ", response)
         return response
+
+
+    def add_subaction_with_task(self, parent_action, actor_iri, sub_action_type, task_type, start_time, end_time):
+        response = self.neem_interface.add_vr_subaction_with_task(parent_action, actor_iri, sub_action_type, task_type)
+        print("response with action: ", response)
+        return response
+
+    def create_actor(self):
+        response = self.neem_interface.create_actor()
+        print("response with actor: ", response)
+        return response
+
+    def get_actor(self):
+        response = self.neem_interface.get_actor()
+        print("response with actor: ", response)
+        return response
+
+    
+
+    def create_episode(self):
+        response = self.neem_interface.start_vr_episode()
+        print("response with action: ", response)
+        return response
+    
     
     # this method loads remote neem from neemhub to local kb(but do not populate local mongodb)
     #def load_remote_neem_to_kb(self, neem_id):
