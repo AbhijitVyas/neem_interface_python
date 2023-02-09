@@ -209,13 +209,13 @@ def get_actor():
     else:
         return jsonify(response), 400
 
-# @app.route("/get_time", methods = ['GET'])
-# def get_time():
-#     response = NEEMData().get_time()
-#     if response is not None:
-#         return jsonify(response), 200
-#     else:
-#         return jsonify(response), 400
+@app.route("/get_time", methods = ['GET'])
+def get_time():
+    response = NEEMData().get_time()
+    if response is not None:
+        return jsonify(response), 200
+    else:
+        return jsonify(response), 400
 
 
 @app.route("/add_subaction_with_task", methods = ['GET', 'POST'])
@@ -236,6 +236,16 @@ def post_add_subaction_with_task():
 @app.route("/create_episode")
 def create_episode():
     response = NEEMData().create_episode()
+    if response is not None:
+        return jsonify(response), 200
+    else:
+        return jsonify(response), 400
+
+
+@app.route("/finish_episode", methods = ['GET', 'POST'])
+def post_finish_episode():
+    episode_iri = request.json['episode_iri']
+    response = NEEMData().finish_episode(episode_iri)
     if response is not None:
         return jsonify(response), 200
     else:

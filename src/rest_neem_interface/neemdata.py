@@ -169,9 +169,18 @@ class NEEMData(object):
         response = self.neem_interface.start_vr_episode()
         print("response with action: ", response)
         return response
-    
+
+
+    def finish_episode(self, episode_iri):
+        response = self.neem_interface.stop_vr_episode(episode_iri)
+        print("response with action: ", response)
+        return response
     
     # this method loads remote neem from neemhub to local kb(but do not populate local mongodb)
     #def load_remote_neem_to_kb(self, neem_id):
     #    self.prolog.ensure_once(f"knowrob_load_neem({atom(neem_id)})")
-    
+
+    def get_time(self):
+        response = self.neem_interface.get_time()
+        print("response with time: ", response)
+        return response

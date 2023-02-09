@@ -296,7 +296,9 @@ class NEEMInterface:
 
     def start_vr_episode(self):
         """
-        Start an episode and return the prolog atom for the corresponding action.
+        - Start an episode and return the prolog atom for the corresponding response.
+        - Here you get time later once the tf logger has started logging the tf frames so that you can assign 
+        it(as start time) to the top level action and extra tf frames can be ignored
         """
         # get an actor if it exists otherwise create a new one
         actor = self.get_actor()
@@ -304,15 +306,17 @@ class NEEMInterface:
         if not 'Actor' in actor or len(actor['Actor']) == 0:
             actor = self.create_actor()
 
-        # get star time for action 
-        time = self.get_time()
-        print("get time: ", time["Time"])
+        # get start time for top level action
         episodeQueryResponse = self.prolog.ensure_once(f"""
+                tf_logger_enable,
+                get_time(Time),
                 kb_project([
                     new_iri(Episode, soma:'Episode'), has_type(Episode, soma:'Episode'),
                     new_iri(Action, dul:'Action'), has_type(Action, dul:'Action'),
-                    new_iri(TimeInterval, dul:'TimeInterval'), holds(Action, dul:'hasTimeInterval', TimeInterval),
-                    holds(TimeInterval, soma:'hasIntervalBegin', {time["Time"]}),
+                    new_iri(TimeInterval, dul:'TimeInterval'),
+                    has_type(TimeInterval,dul:'TimeInterval'),
+                    holds(Action, dul:'hasTimeInterval', TimeInterval),
+                    holds(TimeInterval, soma:'hasIntervalBegin', Time),
                     new_iri(Task, dul:'Task'), has_type(Task,dul:'Task'), executes_task(Action,Task),
                     is_setting_for(Episode,Task),
                     triple(Episode, dul:includesAction, Action),
@@ -323,7 +327,23 @@ class NEEMInterface:
             """)
         return episodeQueryResponse
 
-
+    def stop_vr_episode(self, episode_iri):
+        """
+        - stop an episode and return the prolog atom for the corresponding action.
+        - Here you get time first so that you can assign it to the top level action(as end time)
+        and then stop the tf logger so extra frames can be ignored
+        """
+        episodeQueryResponse = self.prolog.ensure_once(f"""
+                get_time(Time),
+                tf_logger_disable,
+                triple({atom(episode_iri)}, dul:'includesAction', Action),
+                holds(Action, dul:'hasTimeInterval', TimeInterval),
+                kb_project([
+                     holds(TimeInterval, soma:'hasIntervalEnd', Time)
+                ]).
+            """)
+        return episodeQueryResponse
+    
 class Episode:
     """
     Convenience object and context manager for NEEM creation. Can be used in a 'with' statement to automatically
