@@ -278,20 +278,38 @@ class NEEMInterface:
         response = self.prolog.ensure_once("get_time(Time)")
         print("response with time: ", response)
         return response
-    
-    def add_vr_subaction_with_task(self, parent_action_iri, actor_iri, sub_action_type="dul:'Action'",
+
+
+    def add_vr_subaction_with_task(self, parent_action_iri, objects_participate, sub_action_type="dul:'Action'",
                                    task_type="dul:'Task'",
                                    start_time: float = None, end_time: float = None) -> str:
-        
+        # get an actor if it exists otherwise create a new one
+        actor = self.get_actor()
+        print("get actor: ", actor["Actor"][0][0])
+        if not 'Actor' in actor or len(actor['Actor']) == 0:
+            actor = self.create_actor()
+
         actionQueryResponse = self.prolog.ensure_once(f"""
                 kb_project([
                     new_iri(SubAction, {atom(sub_action_type)}), has_type(SubAction, {atom(sub_action_type)}),
                     new_iri(Task, {atom(task_type)}), has_type(Task,{atom(task_type)}), executes_task(SubAction,Task),
                     triple({atom(parent_action_iri)}, dul:hasConstituent, SubAction),
-                    has_type({atom(actor_iri)}, dul:'NaturalPerson'), is_performed_by(SubAction,{atom(actor_iri)})
+                    has_type({atom(actor["Actor"][0][0])}, dul:'NaturalPerson'), is_performed_by(SubAction,{atom(actor["Actor"][0][0])})
                 ]).
             """)
-        return actionQueryResponse
+        # TODO: for each object do this for the action with iri
+        print("all objs", objects_participate)
+        for obj in objects_participate:
+            print("for each obj", obj)
+            objParticipateQueryResponse = self.prolog.ensure_once(f"""
+                kb_project([
+                    holds({atom(actionQueryResponse['SubAction'])}, dul:'hasParticipant', {atom(obj)})
+                ]).
+            """)
+        # kb_project([holds('http://www.ontologydesignpatterns.org/ont/dul/DUL.owl#Action_DFTQXKCS', 
+        # dul:'hasParticipant', 'http://knowrob.org/kb/iai-apartment.owl#right_hand_1')])
+
+        return actionQueryResponse, objParticipateQueryResponse
 
 
     def start_vr_episode(self):
@@ -343,6 +361,9 @@ class NEEMInterface:
                 ]).
             """)
         return episodeQueryResponse
+
+    # def hand_participate_in_action(self, hand_type):
+        
     
 class Episode:
     """

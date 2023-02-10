@@ -16,7 +16,7 @@ def get_hello_world():
     return "Hello, World!"
 
 
-@app.route("/load_neem_to_kb")
+@app.route("/knowrob/api/v1.0/load_neem_to_kb")
 def get_neem_to_load_into_kb():
     response = NEEMData().load_neem_to_kb()
     if response is not None:
@@ -35,7 +35,7 @@ def get_neem_to_load_into_kb():
 #        return jsonify(response), 400
 
 
-@app.route("/get_all_actions")
+@app.route("/knowrob/api/v1.0/get_all_actions")
 def get_all_actions():
     response = NEEMData().get_all_actions()
     if response is not None:
@@ -44,7 +44,7 @@ def get_all_actions():
         return jsonify(response), 400
 
 
-@app.route("/get_all_actions_start_time")
+@app.route("/knowrob/api/v1.0/get_all_actions_start_time")
 def get_all_actions_start_time_stamps():
     response = NEEMData().get_all_actions_start_timestamps()
     if response is not None:
@@ -52,7 +52,7 @@ def get_all_actions_start_time_stamps():
     else:
         return jsonify(response), 400
 
-@app.route("/get_all_actions_end_time")
+@app.route("/knowrob/api/v1.0/get_all_actions_end_time")
 def get_all_actions_end_time_stamps():
     response = NEEMData().get_all_actions_end_timestamps()
     if response is not None:
@@ -60,7 +60,7 @@ def get_all_actions_end_time_stamps():
     else:
         return jsonify(response), 400
     
-@app.route("/get_all_objects_participates_in_actions")
+@app.route("/knowrob/api/v1.0/get_all_objects_participates_in_actions")
 def get_all_objects_participates_in_actions():
     response = NEEMData().get_all_objects_participates_in_actions()
     if response is not None:
@@ -71,7 +71,7 @@ def get_all_objects_participates_in_actions():
 
 # this method will not return any pose since knowrob tf_get_pose has some bug and does not return any value at the 
 #  moment 
-@app.route("/get_handpose_at_start_of_action")
+@app.route("/knowrob/api/v1.0/get_handpose_at_start_of_action")
 def get_handpose_at_start_of_action():
     response = NEEMData().get_handpose_at_start_of_action()
     if response is not None:
@@ -80,7 +80,7 @@ def get_handpose_at_start_of_action():
         return jsonify(response), 400
 
 
-@app.route("/get_source_container_while_grasping")
+@app.route("/knowrob/api/v1.0/get_source_container_while_grasping")
 def get_source_container_while_grasping():
     response = NEEMData().get_source_container_while_grasping()
     if response is not None:
@@ -90,7 +90,7 @@ def get_source_container_while_grasping():
 
 
 # this method at the moment will return Null because of knowrob issue
-@app.route("/get_source_container_pose_while_grasping")
+@app.route("/knowrob/api/v1.0/get_source_container_pose_while_grasping")
 def get_source_container_pose_while_grasping():
     response = NEEMData().get_source_container_pose_while_grasping()
     if response is not None:
@@ -99,7 +99,7 @@ def get_source_container_pose_while_grasping():
         return jsonify(response), 400
 
 
-@app.route("/get_all_objects_with_roles_participates_in_actions")
+@app.route("/knowrob/api/v1.0/get_all_objects_with_roles_participates_in_actions")
 def get_all_obj_participate_each_event():
     response = NEEMData().get_all_obj_roles_which_participate_each_event()
     if response is not None:
@@ -108,7 +108,7 @@ def get_all_obj_participate_each_event():
         return jsonify(response), 400
 
 
-@app.route("/get_shape_for_source_container_objects")
+@app.route("/knowrob/api/v1.0/get_shape_for_source_container_objects")
 def get_shape_for_all_container_objects():
     response = NEEMData().get_shape_for_source_container_objects()
     if response is not None:
@@ -117,7 +117,7 @@ def get_shape_for_all_container_objects():
         return jsonify(response), 400
 
 
-@app.route("/get_color_for_source_container_object")
+@app.route("/knowrob/api/v1.0/get_color_for_source_container_object")
 def get_color_for_all_container_objects():
     response = NEEMData().get_color_for_source_container_objects()
     if response is not None:
@@ -126,7 +126,7 @@ def get_color_for_all_container_objects():
         return jsonify(response), 400
 
 
-@app.route("/get_target_obj_for_pouring")
+@app.route("/knowrob/api/v1.0/get_target_obj_for_pouring")
 def get_target_obj_for_pouring():
     response = NEEMData().get_target_obj_for_pouring()
     if response is not None:
@@ -135,7 +135,7 @@ def get_target_obj_for_pouring():
         return jsonify(response), 400
 
 
-@app.route("/get_pouring_side")
+@app.route("/knowrob/api/v1.0/get_pouring_side")
 def get_pouring_side_for_target_obj():
     response = NEEMData().get_pouring_side()
     if response is not None:
@@ -144,7 +144,7 @@ def get_pouring_side_for_target_obj():
         return jsonify(response), 400
 
 
-@app.route("/get_max_pouring_angle_for_source_obj")
+@app.route("/knowrob/api/v1.0/get_max_pouring_angle_for_source_obj")
 def get_max_pouring_angle_for_source_obj():
     response = NEEMData().get_max_pouring_angle_for_source_obj()
     if response is not None:
@@ -153,7 +153,7 @@ def get_max_pouring_angle_for_source_obj():
         return jsonify(response), 400
 
 
-@app.route("/get_min_pouring_angle_for_source_obj")
+@app.route("/knowrob/api/v1.0/get_min_pouring_angle_for_source_obj")
 def get_min_pouring_angle_for_source_obj():
     response = NEEMData().get_min_pouring_angle_for_source_obj()
     if response is not None:
@@ -162,7 +162,7 @@ def get_min_pouring_angle_for_source_obj():
         return jsonify(response), 400
 
 
-@app.route("/get_pouring_event_time_duration")
+@app.route("/knowrob/api/v1.0/get_pouring_event_time_duration")
 def get_pouring_event_time_duration():
     response = NEEMData().get_pouring_event_time_duration()
     if response is not None:
@@ -171,7 +171,7 @@ def get_pouring_event_time_duration():
         return jsonify(response), 400
 
 
-@app.route("/get_motion_for_pouring")
+@app.route("/knowrob/api/v1.0/get_motion_for_pouring")
 def get_motion_for_pouring():
     response = NEEMData().get_motion_for_pouring()
     if response is not None:
@@ -180,7 +180,7 @@ def get_motion_for_pouring():
         return jsonify(response), 400
 
 
-@app.route("/get_hand_used_for_pouring")
+@app.route("/knowrob/api/v1.0/get_hand_used_for_pouring")
 def get_hand_used_for_pouring():
     response = NEEMData().get_hand_used_for_pouring()
     if response is not None:
@@ -192,7 +192,7 @@ def get_hand_used_for_pouring():
 ######################## VR NEEM logging ########################
 
 
-@app.route("/create_actor", methods = ['GET'])
+@app.route("/knowrob/api/v1.0/create_actor", methods = ['GET'])
 def create_actor():
     response = NEEMData().create_actor()
     if response is not None:
@@ -201,7 +201,7 @@ def create_actor():
         return jsonify(response), 400
 
 
-@app.route("/get_actor", methods = ['GET'])
+@app.route("/knowrob/api/v1.0/get_actor", methods = ['GET'])
 def get_actor():
     response = NEEMData().get_actor()
     if response is not None:
@@ -209,7 +209,7 @@ def get_actor():
     else:
         return jsonify(response), 400
 
-@app.route("/get_time", methods = ['GET'])
+@app.route("/knowrob/api/v1.0/get_time", methods = ['GET'])
 def get_time():
     response = NEEMData().get_time()
     if response is not None:
@@ -218,22 +218,22 @@ def get_time():
         return jsonify(response), 400
 
 
-@app.route("/add_subaction_with_task", methods = ['GET', 'POST'])
+@app.route("/knowrob/api/v1.0/add_subaction_with_task", methods = ['GET', 'POST'])
 def post_add_subaction_with_task():
     parent_action_iri = request.json['parent_action_iri']
+    objects_participate = request.json['objects_participate']
     sub_action_type = request.json['sub_action_type']
     task_type = request.json['task_type']
     start_time = request.json['start_time']
     end_time = request.json['end_time']
-    actor_iri = request.json['actor_iri']
-    response = NEEMData().add_subaction_with_task(parent_action_iri, actor_iri, sub_action_type, task_type, start_time, end_time)
+    response = NEEMData().add_subaction_with_task(parent_action_iri, objects_participate, sub_action_type, task_type, start_time, end_time)
     if response is not None:
         return jsonify(response), 200
     else:
         return jsonify(response), 400
 
 
-@app.route("/create_episode")
+@app.route("/knowrob/api/v1.0/create_episode")
 def create_episode():
     response = NEEMData().create_episode()
     if response is not None:
@@ -242,7 +242,7 @@ def create_episode():
         return jsonify(response), 400
 
 
-@app.route("/finish_episode", methods = ['GET', 'POST'])
+@app.route("/knowrob/api/v1.0/finish_episode", methods = ['GET', 'POST'])
 def post_finish_episode():
     episode_iri = request.json['episode_iri']
     response = NEEMData().finish_episode(episode_iri)
@@ -250,3 +250,12 @@ def post_finish_episode():
         return jsonify(response), 200
     else:
         return jsonify(response), 400
+
+# @app.route("/knowrob/api/v1.0/hand_participate", methods = ['GET', 'POST'])
+# def post_finish_episode():
+#     hand_type = request.json['hand_type']
+#     response = NEEMData().hand_participate_in_action(hand_type)
+#     if response is not None:
+#         return jsonify(response), 200
+#     else:
+#         return jsonify(response), 400

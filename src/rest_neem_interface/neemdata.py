@@ -148,8 +148,8 @@ class NEEMData(object):
         return response
 
 
-    def add_subaction_with_task(self, parent_action, actor_iri, sub_action_type, task_type, start_time, end_time):
-        response = self.neem_interface.add_vr_subaction_with_task(parent_action, actor_iri, sub_action_type, task_type)
+    def add_subaction_with_task(self, parent_action_iri, objects_participate, sub_action_type, task_type, start_time, end_time):
+        response = self.neem_interface.add_vr_subaction_with_task(parent_action_iri, objects_participate, sub_action_type, task_type)
         print("response with action: ", response)
         return response
 
@@ -179,6 +179,11 @@ class NEEMData(object):
     # this method loads remote neem from neemhub to local kb(but do not populate local mongodb)
     #def load_remote_neem_to_kb(self, neem_id):
     #    self.prolog.ensure_once(f"knowrob_load_neem({atom(neem_id)})")
+
+    # def hand_participate_in_action(self, hand_type):
+    #     response = self.neem_interface.hand_participate_in_action(hand_type)
+    #     print("response with hand iri: ", response)
+    #     return response
 
     def get_time(self):
         response = self.neem_interface.get_time()
