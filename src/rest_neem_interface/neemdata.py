@@ -6,7 +6,7 @@ import time
 
 from src.neem_interface_python.rosprolog_client import Prolog, atom
 from src.neem_interface_python.neem_interface import NEEMInterface
-
+import json
 
 
 SCRIPT_DIR = os.path.dirname(os.path.abspath(__file__))
@@ -158,12 +158,16 @@ class NEEMData(object):
         print("response with actor: ", response)
         return response
 
-    def get_actor(self):
-        response = self.neem_interface.get_actor()
-        print("response with actor: ", response)
-        return response
+    def find_all_actors(self):
+        response = self.neem_interface.find_all_actors()
+        response_data = []
+        for actor in response.get('Actor'):
+            data = {}
+            data['Actor'] = actor[0]
+            response_data.append(data)
+        print("response with actor: ", response_data)
+        return response_data
 
-    
 
     def create_episode(self):
         response = self.neem_interface.start_vr_episode()

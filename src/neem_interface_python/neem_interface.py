@@ -269,9 +269,8 @@ class NEEMInterface:
         print("new Actor iri", naturalPersonQueryResponse["Actor"])
         return naturalPersonQueryResponse
 
-    def get_actor(self):
+    def find_all_actors(self):
         response = self.prolog.ensure_once("findall([Actor],(is_agent(Actor), has_type(Actor, dul:'NaturalPerson')), Actor)")
-        print("response with actor: ", response)
         return response
     
     def get_time(self):
@@ -279,12 +278,13 @@ class NEEMInterface:
         print("response with time: ", response)
         return response
 
-
+    
+    # TODO use episode iri so that you do not need to remember the action, but if it does not work then it is fine.
     def add_vr_subaction_with_task(self, parent_action_iri, objects_participate, sub_action_type="dul:'Action'",
                                    task_type="dul:'Task'",
                                    start_time: float = None, end_time: float = None) -> str:
         # get an actor if it exists otherwise create a new one
-        actor = self.get_actor()
+        actor = self.find_all_actors()
         print("get actor: ", actor["Actor"][0][0])
         if not 'Actor' in actor or len(actor['Actor']) == 0:
             actor = self.create_actor()
@@ -309,7 +309,7 @@ class NEEMInterface:
         # kb_project([holds('http://www.ontologydesignpatterns.org/ont/dul/DUL.owl#Action_DFTQXKCS', 
         # dul:'hasParticipant', 'http://knowrob.org/kb/iai-apartment.owl#right_hand_1')])
 
-        return actionQueryResponse, objParticipateQueryResponse
+        return actionQueryResponse
 
 
     def start_vr_episode(self):
@@ -319,11 +319,10 @@ class NEEMInterface:
         it(as start time) to the top level action and extra tf frames can be ignored
         """
         # get an actor if it exists otherwise create a new one
-        actor = self.get_actor()
-        print("get actor: ", actor["Actor"][0][0])
+        actor = self.find_all_actors()
         if not 'Actor' in actor or len(actor['Actor']) == 0:
             actor = self.create_actor()
-
+        print("get actor: ", actor["Actor"][0][0])
         # get start time for top level action
         episodeQueryResponse = self.prolog.ensure_once(f"""
                 tf_logger_enable,

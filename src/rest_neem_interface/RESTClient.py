@@ -201,9 +201,9 @@ def create_actor():
         return jsonify(response), 400
 
 
-@app.route("/knowrob/api/v1.0/get_actor", methods = ['GET'])
-def get_actor():
-    response = NEEMData().get_actor()
+@app.route("/knowrob/api/v1.0/find_all_actors", methods = ['GET'])
+def find_all_actors():
+    response = NEEMData().find_all_actors()
     if response is not None:
         return jsonify(response), 200
     else:
