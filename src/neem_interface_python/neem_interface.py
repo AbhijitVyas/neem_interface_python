@@ -26,9 +26,9 @@ class NEEMInterface:
         self.pool_executor = ThreadPoolExecutor(max_workers=4)
 
         # Load neem-interface.pl into KnowRob
-        neem_interface_path = "/home/avyas/catkin_ws/src/neem_interface_python/src/neem-interface/neem-interface/neem-interface.pl"
-        print("neem interface path", neem_interface_path)
-        self.prolog.ensure_once("ensure_loaded('" + neem_interface_path + "')")
+        # neem_interface_path = "/home/avyas/catkin_ws/src/neem_interface_python/src/neem-interface/neem-interface/neem-interface.pl"
+        # print("neem interface path", neem_interface_path)
+        # self.prolog.ensure_once("ensure_loaded('" + neem_interface_path + "')")
 
     def __del__(self):
         # Wait for all currently running futures
