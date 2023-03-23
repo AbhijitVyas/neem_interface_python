@@ -148,14 +148,14 @@ class NEEMData(object):
         return response
 
 
-    def add_subaction_with_task(self, parent_action_iri, objects_participate, sub_action_type, task_type, start_time, end_time):
-        response = self.neem_interface.add_vr_subaction_with_task(parent_action_iri, objects_participate, sub_action_type, task_type)
-        print("response with action: ", response)
+    def add_subaction_with_task(self, parent_action_iri, sub_action_type, task_type, start_time, end_time, objects_participated, game_participant):
+        response = self.neem_interface.add_vr_subaction_with_task(parent_action_iri, sub_action_type, task_type, start_time, end_time, objects_participated, game_participant)
+        print("Creating a sub action with response: ", response)
         return response
 
     def create_actor(self):
         response = self.neem_interface.create_actor()
-        print("response with actor: ", response)
+        print("Creating a new actor with response: ", response)
         return response
 
     def find_all_actors(self):
@@ -169,15 +169,19 @@ class NEEMData(object):
         return response_data
 
 
-    def create_episode(self):
-        response = self.neem_interface.start_vr_episode()
-        print("response with action: ", response)
+    def create_episode(self, game_participant):
+        response = self.neem_interface.start_vr_episode(game_participant)
+        print("Creating an episode with response: ", response)
         return response
 
+    def create_actor_by_given_name(self, actor_name):
+        response = self.neem_interface.create_actor_by_given_name(actor_name)
+        print("Creating an actor with response: ", response)
+        return response
 
     def finish_episode(self, episode_iri):
         response = self.neem_interface.stop_vr_episode(episode_iri)
-        print("response with action: ", response)
+        print("Finishing an episode with response: ", response)
         return response
     
     # this method loads remote neem from neemhub to local kb(but do not populate local mongodb)
