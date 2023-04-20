@@ -26,9 +26,9 @@ class NEEMInterface:
         self.pool_executor = ThreadPoolExecutor(max_workers=4)
 
         # Load neem-interface.pl into KnowRob
-        # neem_interface_path = "/home/avyas/catkin_ws/src/neem_interface_python/src/neem-interface/neem-interface/neem-interface.pl"
-        # print("neem interface path", neem_interface_path)
-        # self.prolog.ensure_once("ensure_loaded('" + neem_interface_path + "')")
+        neem_interface_path = "/home/avyas/catkin_ws/src/neem_interface_python/src/neem-interface/neem-interface/neem-interface.pl"
+        print("neem interface path", neem_interface_path)
+        self.prolog.ensure_once("ensure_loaded('" + neem_interface_path + "')")
 
     def __del__(self):
         # Wait for all currently running futures
@@ -272,58 +272,79 @@ class NEEMInterface:
     def find_all_actors(self):
         response = self.prolog.ensure_once("findall([Actor],(is_agent(Actor), has_type(Actor, dul:'NaturalPerson')), Actor)")
         return response
+
+    def create_actor_by_given_name(self, actor_name):
+        response = self.prolog.ensure_once(f"""
+                kb_project([
+                    has_type({atom(actor_name)}, dul:'NaturalPerson')
+                ]).
+            """)
+        return response
     
     def get_time(self):
         response = self.prolog.ensure_once("get_time(Time)")
         print("response with time: ", response)
         return response
 
-    
-    # TODO use episode iri so that you do not need to remember the action, but if it does not work then it is fine.
-    def add_vr_subaction_with_task(self, parent_action_iri, objects_participate, sub_action_type="dul:'Action'",
-                                   task_type="dul:'Task'",
-                                   start_time: float = None, end_time: float = None) -> str:
-        # get an actor if it exists otherwise create a new one
-        actor = self.find_all_actors()
-        print("get actor: ", actor["Actor"][0][0])
-        if not 'Actor' in actor or len(actor['Actor']) == 0:
-            actor = self.create_actor()
+    # this method adds a sub action/event logged from RobCog and adds necessary 
+    # information such as what are the objects that participates in it. 
+    def add_vr_subaction_with_task(self, parent_action_iri, sub_action_type,
+                                   task_type,
+                                   start_time, end_time,
+                                   objects_participated,
+                                   game_participant) -> str:
 
+        # TODO: get an actor if it exists otherwise create a new one
+        self.create_actor_by_given_name(game_participant)
         actionQueryResponse = self.prolog.ensure_once(f"""
                 kb_project([
                     new_iri(SubAction, {atom(sub_action_type)}), has_type(SubAction, {atom(sub_action_type)}),
+                    subclass_of({atom(sub_action_type)}, dul:'Action'),
                     new_iri(Task, {atom(task_type)}), has_type(Task,{atom(task_type)}), executes_task(SubAction,Task),
+                    holds({atom(task_type)}, rdfs:subClassOf, dul:'PhysicalTask'),
                     triple({atom(parent_action_iri)}, dul:hasConstituent, SubAction),
-                    has_type({atom(actor["Actor"][0][0])}, dul:'NaturalPerson'), is_performed_by(SubAction,{atom(actor["Actor"][0][0])})
+                    new_iri(TimeInterval, dul:'TimeInterval'),
+                    has_type(TimeInterval,dul:'TimeInterval'),
+                    holds(SubAction, dul:'hasTimeInterval', TimeInterval),
+                    holds(TimeInterval, soma:'hasIntervalBegin', {float(start_time)}),
+                    holds(TimeInterval, soma:'hasIntervalEnd', {float(end_time)}),
+                    has_type({atom(game_participant)}, dul:'NaturalPerson'), is_performed_by(SubAction,{atom(game_participant)})
                 ]).
             """)
-        # TODO: for each object do this for the action with iri
-        print("all objs", objects_participate)
-        for obj in objects_participate:
-            print("for each obj", obj)
-            objParticipateQueryResponse = self.prolog.ensure_once(f"""
-                kb_project([
-                    holds({atom(actionQueryResponse['SubAction'])}, dul:'hasParticipant', {atom(obj)})
-                ]).
-            """)
-        # kb_project([holds('http://www.ontologydesignpatterns.org/ont/dul/DUL.owl#Action_DFTQXKCS', 
-        # dul:'hasParticipant', 'http://knowrob.org/kb/iai-apartment.owl#right_hand_1')])
+        
+        # for each object do this for the action with iri
+        # print("objects_participated from rest call", objects_participated)
+        objects_participated = objects_participated.replace("[", "")
+        objects_participated = objects_participated.replace("]", "")
+        # here the object_with_class_name is arranged like this somaClassName:IndividualName
+        objects_with_class_name = objects_participated.split(",")
+        # print("objects split: ", objects)
+        for object_with_class_name in objects_with_class_name:
+            objects = object_with_class_name.split(":")
+            if len(objects) > 1 :
+                somifiedClassName = "soma:'" + objects[0] + "'"
+                somifiedIndividualName = "soma:'" + objects[1] + "'"
+                # now write prolog query
+                objParticipateQueryResponse = self.prolog.ensure_once(f"""
+                    kb_project([
+                        has_type({atom(somifiedIndividualName)}, {atom(somifiedClassName)}),
+                        subclass_of({atom(somifiedClassName)}, dul:'PhysicalObject'),
+                        holds({atom(actionQueryResponse['SubAction'])}, dul:'hasParticipant', {atom(somifiedIndividualName)})
+                    ]).
+                """)
 
         return actionQueryResponse
 
-
-    def start_vr_episode(self):
+    # this method creates a new episode with suppliment information such as who performs it, 
+    # and which top level action it includes. 
+    def start_vr_episode(self, game_participant):
         """
         - Start an episode and return the prolog atom for the corresponding response.
         - Here you get time later once the tf logger has started logging the tf frames so that you can assign 
         it(as start time) to the top level action and extra tf frames can be ignored
         """
-        # get an actor if it exists otherwise create a new one
-        actor = self.find_all_actors()
-        if not 'Actor' in actor or len(actor['Actor']) == 0:
-            actor = self.create_actor()
-        print("get actor: ", actor["Actor"][0][0])
-        # get start time for top level action
+        # TODO: get an actor if it exists otherwise create a new one
+        self.create_actor_by_given_name(game_participant)
         episodeQueryResponse = self.prolog.ensure_once(f"""
                 tf_logger_enable,
                 get_time(Time),
@@ -337,13 +358,15 @@ class NEEMInterface:
                     new_iri(Task, dul:'Task'), has_type(Task,dul:'Task'), executes_task(Action,Task),
                     is_setting_for(Episode,Task),
                     triple(Episode, dul:includesAction, Action),
-                    has_type({atom(actor["Actor"][0][0])}, dul:'NaturalPerson'), is_performed_by(Action,{atom(actor["Actor"][0][0])}),
-                    triple(Episode, dul:includesAgent, {atom(actor["Actor"][0][0])}),
-                    new_iri(Role, soma:'AgentRole'), has_type(Role, soma:'AgentRole'), has_role({atom(actor["Actor"][0][0])},Role)
+                    has_type({atom(game_participant)}, dul:'NaturalPerson'), is_performed_by(Action,{atom(game_participant)}),
+                    triple(Episode, dul:includesAgent, {atom(game_participant)}),
+                    new_iri(Role, soma:'AgentRole'), has_type(Role, soma:'AgentRole'), has_role({atom(game_participant)},Role)
                 ]).
             """)
+        # response include Instances of Episode, Action, TimeInterval, Task, and Role 
         return episodeQueryResponse
 
+    # this method stops the current running episode
     def stop_vr_episode(self, episode_iri):
         """
         - stop an episode and return the prolog atom for the corresponding action.
@@ -359,6 +382,7 @@ class NEEMInterface:
                      holds(TimeInterval, soma:'hasIntervalEnd', Time)
                 ]).
             """)
+        # response include Instances of Action, and TimeInterval
         return episodeQueryResponse
 
     # def hand_participate_in_action(self, hand_type):

@@ -201,6 +201,15 @@ def create_actor():
         return jsonify(response), 400
 
 
+@app.route("/knowrob/api/v1.0/create_actor_by_given_name", methods = ['GET', 'POST'])
+def create_actor_by_given_name():
+    actor_name = request.json['actor_name']
+    response = NEEMData().create_actor_by_given_name(actor_name)
+    if response is not None:
+        return jsonify(response), 200
+    else:
+        return jsonify(response), 400
+
 @app.route("/knowrob/api/v1.0/find_all_actors", methods = ['GET'])
 def find_all_actors():
     response = NEEMData().find_all_actors()
@@ -221,21 +230,28 @@ def get_time():
 @app.route("/knowrob/api/v1.0/add_subaction_with_task", methods = ['GET', 'POST'])
 def post_add_subaction_with_task():
     parent_action_iri = request.json['parent_action_iri']
-    objects_participate = request.json['objects_participate']
     sub_action_type = request.json['sub_action_type']
     task_type = request.json['task_type']
     start_time = request.json['start_time']
     end_time = request.json['end_time']
-    response = NEEMData().add_subaction_with_task(parent_action_iri, objects_participate, sub_action_type, task_type, start_time, end_time)
+    objects_participated = request.json['objects_participated']
+    game_participant = request.json['game_participant']
+    
+    print("create sub action call parent_action: %s , sub_action_type : %s , task_type: %s , start_time: %s , end_time: %s , objects_participated: %s , game_participant: %s "
+          %(parent_action_iri, sub_action_type, task_type, start_time, end_time, objects_participated, game_participant))
+    response = NEEMData().add_subaction_with_task(parent_action_iri, sub_action_type, task_type, start_time, end_time, objects_participated, game_participant)
     if response is not None:
         return jsonify(response), 200
     else:
         return jsonify(response), 400
 
-
-@app.route("/knowrob/api/v1.0/create_episode")
+@app.route("/knowrob/api/v1.0/create_episode", methods = ['GET', 'POST'])
 def create_episode():
-    response = NEEMData().create_episode()
+    game_participant = request.json['game_participant']
+    print("create an episode with game_participant: %s "
+          %(game_participant))
+
+    response = NEEMData().create_episode(game_participant)
     if response is not None:
         return jsonify(response), 200
     else:
@@ -245,6 +261,7 @@ def create_episode():
 @app.route("/knowrob/api/v1.0/finish_episode", methods = ['GET', 'POST'])
 def post_finish_episode():
     episode_iri = request.json['episode_iri']
+    print("finish an episode with iri: %s " %(episode_iri))
     response = NEEMData().finish_episode(episode_iri)
     if response is not None:
         return jsonify(response), 200
