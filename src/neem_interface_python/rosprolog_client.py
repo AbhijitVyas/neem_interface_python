@@ -11,7 +11,7 @@ import re
 
 import roslibpy
 
-from neem_interface_python.utils.rosbridge import ros_client
+from src.neem_interface_python.utils.rosbridge import ros_client
 
 
 class PrologException(Exception):
@@ -64,7 +64,8 @@ class PrologQuery(object):
         try:
             while not self._finished:
                 next_solution = self._next_solution_srv.call(roslibpy.ServiceRequest({"id": self.get_id()}))
-                if next_solution["status"] == PrologNextSolutionResponse.OK.value:  # Have to compare to .value here because roslibpy msg does not have types
+                if next_solution[
+                    "status"] == PrologNextSolutionResponse.OK.value:  # Have to compare to .value here because roslibpy msg does not have types
                     yield self._json_to_dict(next_solution["solution"])
                 elif next_solution["status"] == PrologNextSolutionResponse.WRONG_ID.value:
                     raise PrologException(
@@ -110,8 +111,10 @@ class Prolog(object):
         """
         ros_hostname = urlparse(os.environ["ROS_MASTER_URI"]).hostname
         self._simple_query_srv = roslibpy.Service(ros_client, f'{name_space}/query', "json_prolog_msgs/srv/PrologQuery")
-        self._next_solution_srv = roslibpy.Service(ros_client, f'{name_space}/next_solution', "json_prolog_msgs/srv/PrologNextSolution")
-        self._finish_query_srv = roslibpy.Service(ros_client, f'{name_space}/finish', "json_prolog_msgs/srv/PrologFinish")
+        self._next_solution_srv = roslibpy.Service(ros_client, f'{name_space}/next_solution',
+                                                   "json_prolog_msgs/srv/PrologNextSolution")
+        self._finish_query_srv = roslibpy.Service(ros_client, f'{name_space}/finish',
+                                                  "json_prolog_msgs/srv/PrologFinish")
 
     def query(self, query_str):
         """
