@@ -248,12 +248,10 @@ def post_add_subaction_with_task():
 @app.route("/knowrob/api/v1.0/create_episode", methods = ['GET', 'POST'])
 def create_episode():
     game_participant = request.json['game_participant']
-    game_start_time = request.json['game_start_time']
-    
-    print("create an episode with game_participant: %s , game_start_time: %s "
-          %(game_participant, game_start_time))
-    
-    response = NEEMData().create_episode(game_participant, game_start_time)
+    print("create an episode with game_participant: %s "
+          %(game_participant))
+
+    response = NEEMData().create_episode(game_participant)
     if response is not None:
         return jsonify(response), 200
     else:
@@ -263,9 +261,8 @@ def create_episode():
 @app.route("/knowrob/api/v1.0/finish_episode", methods = ['GET', 'POST'])
 def post_finish_episode():
     episode_iri = request.json['episode_iri']
-    game_end_time = request.json['game_end_time']
-    print("finish an episode with iri: %s , game_end_time: %s " %(episode_iri, game_end_time))
-    response = NEEMData().finish_episode(episode_iri, game_end_time)
+    print("finish an episode with iri: %s " %(episode_iri))
+    response = NEEMData().finish_episode(episode_iri)
     if response is not None:
         return jsonify(response), 200
     else:

@@ -169,8 +169,8 @@ class NEEMData(object):
         return response_data
 
 
-    def create_episode(self, game_participant, game_start_time):
-        response = self.neem_interface.start_vr_episode(game_participant, game_start_time)
+    def create_episode(self, game_participant):
+        response = self.neem_interface.start_vr_episode(game_participant)
         print("Creating an episode with response: ", response)
         return response
 
@@ -179,8 +179,8 @@ class NEEMData(object):
         print("Creating an actor with response: ", response)
         return response
 
-    def finish_episode(self, episode_iri, game_end_time):
-        response = self.neem_interface.stop_vr_episode(episode_iri, game_end_time)
+    def finish_episode(self, episode_iri):
+        response = self.neem_interface.stop_vr_episode(episode_iri)
         print("Finishing an episode with response: ", response)
         return response
     
