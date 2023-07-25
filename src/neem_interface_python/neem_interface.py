@@ -1,12 +1,18 @@
+#!/usr/bin/env python3
+import sys
 import os
+sys.path.append(os.getcwd() + "/../../../src/")
+import neem_interface_python
+from neem_interface_python.src.neem_interface_python.rosprolog_client import Prolog, atom
+from neem_interface_python.src.neem_interface_python.utils.utils import Datapoint, Pose
 from concurrent.futures import ThreadPoolExecutor
 from typing import List, Tuple, Optional
 import time
 
 from tqdm import tqdm
 
-from src.neem_interface_python.rosprolog_client import Prolog, atom
-from src.neem_interface_python.utils.utils import Datapoint, Pose
+
+
 
 SCRIPT_DIR = os.path.dirname(os.path.abspath(__file__))
 
