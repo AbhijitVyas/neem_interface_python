@@ -147,15 +147,26 @@ class NEEMData(object):
         print("response with poses: ", response)
         return response
 
+    def add_subaction_with_task(self, parent_action_iri,
+                                sub_action_type, task_type,
+                                start_time, end_time, objects_participated, additional_information, game_participant):
+        response = self.neem_interface.add_vr_subaction_with_task(parent_action_iri, sub_action_type, task_type,
+                                                                  start_time, end_time, objects_participated,
+                                                                  additional_information, game_participant)
+        # print("Creating a sub action with response: ", response)
+        return response
 
-    def add_subaction_with_task(self, parent_action_iri, sub_action_type, task_type, start_time, end_time, objects_participated, game_participant):
-        response = self.neem_interface.add_vr_subaction_with_task(parent_action_iri, sub_action_type, task_type, start_time, end_time, objects_participated, game_participant)
-        print("Creating a sub action with response: ", response)
+    def add_additional_pouring_information(self, parent_action_iri, sub_action_type, max_pouring_angle,
+                                           min_pouring_angle, source_container, destination_container, pouring_pose):
+        response = self.neem_interface.add_additional_pouring_information(parent_action_iri, sub_action_type,
+                                                                          max_pouring_angle, min_pouring_angle,
+                                                                          source_container, destination_container,
+                                                                          pouring_pose)
         return response
 
     def create_actor(self):
         response = self.neem_interface.create_actor()
-        print("Creating a new actor with response: ", response)
+        # print("Creating a new actor with response: ", response)
         return response
 
     def find_all_actors(self):
@@ -165,7 +176,7 @@ class NEEMData(object):
             data = {}
             data['Actor'] = actor[0]
             response_data.append(data)
-        print("response with actor: ", response_data)
+        # print("response with actor: ", response_data)
         return response_data
 
 

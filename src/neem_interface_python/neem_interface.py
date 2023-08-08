@@ -26,10 +26,10 @@ class NEEMInterface:
         self.pool_executor = ThreadPoolExecutor(max_workers=4)
 
         # Load neem-interface.pl into KnowRob
-        print("SCRIPT_DIR", SCRIPT_DIR)
-        neem_interface_path = SCRIPT_DIR + "/../neem-interface/neem-interface.pl"
-        print("neem interface path", neem_interface_path)
-        self.prolog.ensure_once("ensure_loaded('" + neem_interface_path + "')")
+        # print("SCRIPT_DIR", SCRIPT_DIR)
+        # neem_interface_path = SCRIPT_DIR + "/../neem-interface/neem-interface.pl"
+        # print("neem interface path", neem_interface_path)
+        # self.prolog.ensure_once("ensure_loaded('" + neem_interface_path + "')")
 
     def __del__(self):
         # Wait for all currently running futures
@@ -271,7 +271,8 @@ class NEEMInterface:
         return naturalPersonQueryResponse
 
     def find_all_actors(self):
-        response = self.prolog.ensure_once("findall([Actor],(is_agent(Actor), has_type(Actor, dul:'NaturalPerson')), Actor)")
+        response = self.prolog.ensure_once(
+            "findall([Actor],(is_agent(Actor), has_type(Actor, dul:'NaturalPerson')), Actor)")
         return response
 
     def create_actor_by_given_name(self, actor_name):
@@ -281,7 +282,7 @@ class NEEMInterface:
                 ]).
             """)
         return response
-    
+
     def get_time(self):
         response = self.prolog.ensure_once("get_time(Time)")
         print("response with time: ", response)
@@ -293,6 +294,7 @@ class NEEMInterface:
                                    task_type,
                                    start_time, end_time,
                                    objects_participated,
+                                   additional_information,
                                    game_participant) -> str:
 
         # TODO: get an actor if it exists otherwise create a new one
@@ -312,9 +314,9 @@ class NEEMInterface:
                     has_type({atom(game_participant)}, dul:'NaturalPerson'), is_performed_by(SubAction,{atom(game_participant)})
                 ]).
             """)
-        
+
+        print("objects_participated from rest call", objects_participated)
         # for each object do this for the action with iri
-        # print("objects_participated from rest call", objects_participated)
         objects_participated = objects_participated.replace("[", "")
         objects_participated = objects_participated.replace("]", "")
         # here the object_with_class_name is arranged like this somaClassName:IndividualName
@@ -322,18 +324,90 @@ class NEEMInterface:
         # print("objects split: ", objects)
         for object_with_class_name in objects_with_class_name:
             objects = object_with_class_name.split(":")
-            if len(objects) > 1 :
+            if len(objects) > 1:
                 somifiedClassName = "soma:'" + objects[0] + "'"
                 somifiedIndividualName = "soma:'" + objects[1] + "'"
-                # now write prolog query
-                objParticipateQueryResponse = self.prolog.ensure_once(f"""
+
+                # perform additional_information here only.
+                print("additional_information['SCName'] ", additional_information['SCName'] )
+                print("objects[0] ", objects[0] )
+                if(sub_action_type == "soma:'PouredOut'" and 
+                        additional_information['SCName'] in objects[0]):
+                    # now write prolog query
+                    objParticipateQueryResponse = self.prolog.ensure_once(f"""
+                        kb_project([
+                            has_type({atom(somifiedIndividualName)}, {atom(somifiedClassName)}),
+                            subclass_of({atom(somifiedClassName)}, dul:'PhysicalObject'),
+                            holds({atom(actionQueryResponse['SubAction'])}, dul:'hasParticipant', {atom(somifiedIndividualName)})
+                        ]).
+                    """)
+                    print("objParticipateQueryResponse from rest call", objParticipateQueryResponse)
+        # somifiedSCName = "soma:'" + additional_information['SCName'] + "'"
+        # print("somifiedSCName from rest call", somifiedSCName)
+        # 
+        # somifiedDCName = "soma:'" + additional_information['DCName'] + "'"
+        # print("somifiedDCName from rest call", somifiedDCName)
+        # 
+        # if(sub_action_type == "soma:'PouredOut'"):
+        #     additionalInfoQueryResponse = self.prolog.ensure_once(f"""
+        #                 kb_project([
+        #                     has_type(SCIndividual, {atom(somifiedSCName)}),
+        #                     new_iri(SCRole, soma:'SourceContainer')
+        #                 ]).
+        #             """)
+        # elif(sub_action_type == "soma:'PouredInTo'"):
+        #     additionalInfoQueryResponse = self.prolog.ensure_once(f"""
+        #                 kb_project([
+        #                     has_type(DCIndividual, {atom(somifiedDCName)}),
+        #                     new_iri(DCRole, soma:'DestinationContainer')
+        #                 ]).
+        #             """)
+        #     
+        # print("additionalInfoQueryResponse from rest call", additionalInfoQueryResponse)
+        return actionQueryResponse
+
+    # Not used at the moment
+    def add_additional_pouring_information(self, parent_action_iri, sub_action_type,
+                                           max_pouring_angle, min_pouring_angle,
+                                           source_container, destination_container,
+                                           pouring_pose):
+        actionQueryResponse = None
+        print("sub_action_type", sub_action_type)
+        # step 1: first check if Pouring In or Out events are logged with given Parent action?
+        if(sub_action_type == "soma:'PouredOut'"):
+            # actionQueryResponse = self.prolog.ensure_once(f"""
+            #         kb_project([
+            #             has_type(SubAction, {atom(sub_action_type)}),
+            #             triple({atom(parent_action_iri)}, dul:hasConstituent, SubAction),
+            #             has_type(SourceContainer, {atom(source_container)}),
+            #             holds(SubAction, dul:'hasParticipant', SourceContainer),
+            #             new_iri(SCRole, soma:'SourceContainer'),
+            #             has_type(SCRole,soma:'SourceContainer'),
+            #             holds(SourceContainer, dul:'hasRole', SCRole),
+            #             new_iri(JointLimitMax, 'http://www.ease-crc.org/ont/SOMA-OBJ.owl#JointLimit'),
+            #             has_type(JointLimitMax, 'http://www.ease-crc.org/ont/SOMA-OBJ.owl#JointLimit'),
+            #             holds(JointLimitMax, 'http://www.ease-crc.org/ont/SOMA-OBJ.owl#hasJointPositionMax', {atom(max_pouring_angle)}),
+            #             holds(SubAction, dul:'hasRegion', JointLimitMax),
+            #             new_iri(JointLimitMin, 'http://www.ease-crc.org/ont/SOMA-OBJ.owl#JointLimit'),
+            #             has_type(JointLimitMin, 'http://www.ease-crc.org/ont/SOMA-OBJ.owl#JointLimit'),
+            #             holds(JointLimitMin, 'http://www.ease-crc.org/ont/SOMA-OBJ.owl#hasJointPositionMin', {atom(max_pouring_angle)}),
+            #             holds(SubAction, dul:'hasRegion', JointLimitMin)
+            #         ]).
+            #     """)
+            actionQueryResponse = self.prolog.ensure_once(f"""
                     kb_project([
-                        has_type({atom(somifiedIndividualName)}, {atom(somifiedClassName)}),
-                        subclass_of({atom(somifiedClassName)}, dul:'PhysicalObject'),
-                        holds({atom(actionQueryResponse['SubAction'])}, dul:'hasParticipant', {atom(somifiedIndividualName)})
+                        has_type(SubAction, {atom(sub_action_type)}),
+                        triple({atom(parent_action_iri)}, dul:hasConstituent, SubAction)
                     ]).
                 """)
-
+        elif(sub_action_type == "soma:'PouredInTo'"):
+            print("will do later!")
+        # step 2: Add source and destination containers to the pouring event with appropriate roles
+        # step 3: Add max and min pouring angles for pouring out and source container
+        # step 4: Add pouring pose to source container
+        
+        
+        
         return actionQueryResponse
 
     # this method creates a new episode with suppliment information such as who performs it, 
@@ -387,8 +461,8 @@ class NEEMInterface:
         return episodeQueryResponse
 
     # def hand_participate_in_action(self, hand_type):
-        
-    
+
+
 class Episode:
     """
     Convenience object and context manager for NEEM creation. Can be used in a 'with' statement to automatically

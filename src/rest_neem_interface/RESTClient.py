@@ -4,7 +4,8 @@ from flask import Flask, render_template, jsonify, request
 from flask_restful import Resource, Api, reqparse
 import pandas as pd
 from .neemdata import NEEMData
-
+import json
+import ast
 SCRIPT_DIR = os.path.dirname(os.path.abspath(__file__))
 
 app = Flask(__name__)
@@ -235,12 +236,58 @@ def post_add_subaction_with_task():
     start_time = request.json['start_time']
     end_time = request.json['end_time']
     objects_participated = request.json['objects_participated']
+    additional_information = request.json['additional_event_info']
     game_participant = request.json['game_participant']
+
+    if(type(additional_information) == str):
+        additional_information = additional_information.replace("'", '"')
+    # print("additional_information", additional_information)
+
+    # use the ast.literal_eval function to parse the string and create a dictionary object
+    additional_information_dict_obj = ast.literal_eval(additional_information)
+    # json_object = json.loads(additional_information)
     
-    print("create sub action call parent_action: %s , sub_action_type : %s , task_type: %s , start_time: %s , end_time: %s , objects_participated: %s , game_participant: %s "
-          %(parent_action_iri, sub_action_type, task_type, start_time, end_time, objects_participated, game_participant))
-    response = NEEMData().add_subaction_with_task(parent_action_iri, sub_action_type, task_type, start_time, end_time, objects_participated, game_participant)
+    # print("create sub action call parent_action: %s , sub_action_type : %s , task_type: %s , start_time: %s , end_time: %s , objects_participated: %s , game_participant: %s "
+    #       %(parent_action_iri, sub_action_type, task_type, start_time, end_time, objects_participated, game_participant))
+
+    print("json_object", additional_information_dict_obj['MaxPouringAngle'])
+    # print("additional info check", json_object['MaxPouringAngle'])
+    # 
+    # print("additional info check", json_object['SCName'])
+    # 
+    # print("additional info check", json_object['DCName'])
+
+    # print("additional info check", additional_information)
+    
+    response = NEEMData().add_subaction_with_task(parent_action_iri, sub_action_type, task_type, start_time, end_time,
+                                                  objects_participated, additional_information_dict_obj, game_participant)
     if response is not None:
+        print("Sub task is added to the KB!", response)
+        return jsonify(response), 200
+    else:
+        return jsonify(response), 400
+
+@app.route("/knowrob/api/v1.0/add_additional_pouring_information", methods = ['GET', 'POST'])
+def post_add_additional_pouring_information():
+    parent_action_iri = request.json['parent_action_iri']
+    sub_action_type = request.json['sub_action_type']
+    max_pouring_angle = request.json['max_pouring_angle']
+    min_pouring_angle = request.json['min_pouring_angle']
+    source_container = request.json['source_container']
+    destination_container = request.json['destination_container']
+    pouring_pose = request.json['pouring_pose']
+
+    # print("add additional info for pouring action with parent_action: %s , "
+    #       "sub_action_type : %s , max_pouring_angle: %s , min_pouring_angle: %s , "
+    #       "source_container: %s , destination_container: %s , pouring_pose: %s "
+    #       %(parent_action_iri, sub_action_type, max_pouring_angle, min_pouring_angle, source_container,
+    #         destination_container, pouring_pose))
+    
+    response = NEEMData().add_additional_pouring_information(parent_action_iri, sub_action_type, max_pouring_angle,
+                                                             min_pouring_angle, source_container, destination_container,
+                                                             pouring_pose)
+    if response is not None:
+        print("additional pouring information is added to the KB!", response)
         return jsonify(response), 200
     else:
         return jsonify(response), 400
