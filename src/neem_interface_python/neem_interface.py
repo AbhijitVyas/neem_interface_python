@@ -330,6 +330,8 @@ class NEEMInterface:
 
                 # perform additional_information here only.
                 print("additional_information['SCName'] ", additional_information['SCName'] )
+                print("additional_information['MaxPouringAngle'] ", additional_information['MaxPouringAngle'] )
+                print("additional_information['MinPouringAngle'] ", additional_information['MinPouringAngle'] )
                 print("objects[0] ", objects[0] )
                 if(sub_action_type == "soma:'PouredOut'" and 
                         additional_information['SCName'] in objects[0]):
@@ -338,7 +340,22 @@ class NEEMInterface:
                         kb_project([
                             has_type({atom(somifiedIndividualName)}, {atom(somifiedClassName)}),
                             subclass_of({atom(somifiedClassName)}, dul:'PhysicalObject'),
-                            holds({atom(actionQueryResponse['SubAction'])}, dul:'hasParticipant', {atom(somifiedIndividualName)})
+                            holds({atom(actionQueryResponse['SubAction'])}, dul:'hasParticipant', {atom(somifiedIndividualName)}),
+                            new_iri(SCRole, soma:'SourceContainer'),
+                            holds(SCRole,  'http://www.w3.org/1999/02/22-rdf-syntax-ns#type', soma:'Container'),
+                            holds({atom(somifiedIndividualName)}, dul:'hasRole', SCRole),
+                            new_iri(XJointLimitMax, 'http://www.ease-crc.org/ont/SOMA-OBJ.owl#JointLimit'),
+                            has_type(XJointLimitMax, 'http://www.ease-crc.org/ont/SOMA-OBJ.owl#JointLimit'),
+                            holds(XJointLimitMax, 'http://www.ease-crc.org/ont/SOMA-OBJ.owl#hasJointPositionMax', {atom(additional_information['MaxPouringAngle']['X'])}),
+                            new_iri(YJointLimitMax, 'http://www.ease-crc.org/ont/SOMA-OBJ.owl#JointLimit'),
+                            has_type(YJointLimitMax, 'http://www.ease-crc.org/ont/SOMA-OBJ.owl#JointLimit'),
+                            holds(YJointLimitMax, 'http://www.ease-crc.org/ont/SOMA-OBJ.owl#hasJointPositionMax', {atom(additional_information['MaxPouringAngle']['Y'])}),
+                            new_iri(ZJointLimitMax, 'http://www.ease-crc.org/ont/SOMA-OBJ.owl#JointLimit'),
+                            has_type(ZJointLimitMax, 'http://www.ease-crc.org/ont/SOMA-OBJ.owl#JointLimit'),
+                            holds(ZJointLimitMax, 'http://www.ease-crc.org/ont/SOMA-OBJ.owl#hasJointPositionMax', {atom(additional_information['MaxPouringAngle']['Z'])}),
+                            holds({atom(somifiedIndividualName)}, dul:'hasRegion', XJointLimitMax),
+                            holds({atom(somifiedIndividualName)}, dul:'hasRegion', YJointLimitMax),
+                            holds({atom(somifiedIndividualName)}, dul:'hasRegion', ZJointLimitMax)
                         ]).
                     """)
                     print("objParticipateQueryResponse from rest call", objParticipateQueryResponse)
@@ -382,7 +399,7 @@ class NEEMInterface:
             #             has_type(SourceContainer, {atom(source_container)}),
             #             holds(SubAction, dul:'hasParticipant', SourceContainer),
             #             new_iri(SCRole, soma:'SourceContainer'),
-            #             has_type(SCRole,soma:'SourceContainer'),
+            #             has_type(SCRole,soma:'Container'),
             #             holds(SourceContainer, dul:'hasRole', SCRole),
             #             new_iri(JointLimitMax, 'http://www.ease-crc.org/ont/SOMA-OBJ.owl#JointLimit'),
             #             has_type(JointLimitMax, 'http://www.ease-crc.org/ont/SOMA-OBJ.owl#JointLimit'),
