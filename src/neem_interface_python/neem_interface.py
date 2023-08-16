@@ -315,7 +315,6 @@ class NEEMInterface:
                 ]).
             """)
 
-        print("objects_participated from rest call", objects_participated)
         # for each object do this for the action with iri
         objects_participated = objects_participated.replace("[", "")
         objects_participated = objects_participated.replace("]", "")
@@ -327,60 +326,94 @@ class NEEMInterface:
             if len(objects) > 1:
                 somifiedClassName = "soma:'" + objects[0] + "'"
                 somifiedIndividualName = "soma:'" + objects[1] + "'"
-
-                # perform additional_information here only.
-                print("additional_information['SCName'] ", additional_information['SCName'] )
-                print("additional_information['MaxPouringAngle'] ", additional_information['MaxPouringAngle'] )
-                print("additional_information['MinPouringAngle'] ", additional_information['MinPouringAngle'] )
-                print("objects[0] ", objects[0] )
-                if(sub_action_type == "soma:'PouredOut'" and 
-                        additional_information['SCName'] in objects[0]):
-                    # now write prolog query
-                    objParticipateQueryResponse = self.prolog.ensure_once(f"""
+                # now write prolog query
+                objParticipateQueryResponse = self.prolog.ensure_once(f"""
+                    kb_project([
+                        has_type({atom(somifiedIndividualName)}, {atom(somifiedClassName)}),
+                        subclass_of({atom(somifiedClassName)}, dul:'PhysicalObject'),
+                        holds({atom(actionQueryResponse['SubAction'])}, dul:'hasParticipant', {atom(somifiedIndividualName)})
+                    ]).
+                """)
+        # Add additional info in case of Pouring
+        if(sub_action_type == "soma:'PouredOut'"):
+            SixDPoseJointMax = additional_information['MaxPouringAngle']['X'] + ',' + \
+                                additional_information['MaxPouringAngle']['Y'] + ',' + \
+                                additional_information['MaxPouringAngle']['Z']
+            SixDPoseJointMin = additional_information['MinPouringAngle']['X'] + ',' + \
+                                additional_information['MinPouringAngle']['Y'] + ',' + \
+                                additional_information['MinPouringAngle']['Z']
+            SCName = "soma:'" + additional_information['SCName'] + "'"
+            additionalInfoQueryResponse = self.prolog.ensure_once(f"""
                         kb_project([
-                            has_type({atom(somifiedIndividualName)}, {atom(somifiedClassName)}),
-                            subclass_of({atom(somifiedClassName)}, dul:'PhysicalObject'),
-                            holds({atom(actionQueryResponse['SubAction'])}, dul:'hasParticipant', {atom(somifiedIndividualName)}),
                             new_iri(SCRole, soma:'SourceContainer'),
-                            holds(SCRole,  'http://www.w3.org/1999/02/22-rdf-syntax-ns#type', soma:'Container'),
-                            holds({atom(somifiedIndividualName)}, dul:'hasRole', SCRole),
-                            new_iri(XJointLimitMax, 'http://www.ease-crc.org/ont/SOMA-OBJ.owl#JointLimit'),
-                            has_type(XJointLimitMax, 'http://www.ease-crc.org/ont/SOMA-OBJ.owl#JointLimit'),
-                            holds(XJointLimitMax, 'http://www.ease-crc.org/ont/SOMA-OBJ.owl#hasJointPositionMax', {atom(additional_information['MaxPouringAngle']['X'])}),
-                            new_iri(YJointLimitMax, 'http://www.ease-crc.org/ont/SOMA-OBJ.owl#JointLimit'),
-                            has_type(YJointLimitMax, 'http://www.ease-crc.org/ont/SOMA-OBJ.owl#JointLimit'),
-                            holds(YJointLimitMax, 'http://www.ease-crc.org/ont/SOMA-OBJ.owl#hasJointPositionMax', {atom(additional_information['MaxPouringAngle']['Y'])}),
-                            new_iri(ZJointLimitMax, 'http://www.ease-crc.org/ont/SOMA-OBJ.owl#JointLimit'),
-                            has_type(ZJointLimitMax, 'http://www.ease-crc.org/ont/SOMA-OBJ.owl#JointLimit'),
-                            holds(ZJointLimitMax, 'http://www.ease-crc.org/ont/SOMA-OBJ.owl#hasJointPositionMax', {atom(additional_information['MaxPouringAngle']['Z'])}),
-                            holds({atom(somifiedIndividualName)}, dul:'hasRegion', XJointLimitMax),
-                            holds({atom(somifiedIndividualName)}, dul:'hasRegion', YJointLimitMax),
-                            holds({atom(somifiedIndividualName)}, dul:'hasRegion', ZJointLimitMax)
+                            has_type(SCRole, soma:'SourceContainer'),
+                            has_role({atom(SCName)}, SCRole),
+                            holds(SCRole, dul:'isObservableAt', {atom(actionQueryResponse['TimeInterval'])}),
+                            new_iri(SixDPoseMaxAngle, soma:'6DPose'),
+                            has_type(SixDPoseMaxAngle, soma:'6DPose'),
+                            holds(SixDPoseMaxAngle, soma:'hasMaxPouringAngleData', {atom(SixDPoseJointMax)}),
+                            holds({atom(SCName)}, dul:'hasRegion', SixDPoseMaxAngle),
+                            holds(SixDPoseMaxAngle, dul:'isObservableAt', {atom(actionQueryResponse['TimeInterval'])}),
+                            new_iri(SixDPoseMinAngle, soma:'6DPose'),
+                            has_type(SixDPoseMinAngle, soma:'6DPose'),
+                            holds(SixDPoseMinAngle, soma:'hasMinPouringAngleData', {atom(SixDPoseJointMin)}),
+                            holds({atom(SCName)}, dul:'hasRegion', SixDPoseMinAngle),
+                            holds(SixDPoseMinAngle, dul:'isObservableAt', {atom(actionQueryResponse['TimeInterval'])})
                         ]).
                     """)
-                    print("objParticipateQueryResponse from rest call", objParticipateQueryResponse)
-        # somifiedSCName = "soma:'" + additional_information['SCName'] + "'"
-        # print("somifiedSCName from rest call", somifiedSCName)
-        # 
-        # somifiedDCName = "soma:'" + additional_information['DCName'] + "'"
-        # print("somifiedDCName from rest call", somifiedDCName)
-        # 
-        # if(sub_action_type == "soma:'PouredOut'"):
-        #     additionalInfoQueryResponse = self.prolog.ensure_once(f"""
-        #                 kb_project([
-        #                     has_type(SCIndividual, {atom(somifiedSCName)}),
-        #                     new_iri(SCRole, soma:'SourceContainer')
-        #                 ]).
-        #             """)
-        # elif(sub_action_type == "soma:'PouredInTo'"):
-        #     additionalInfoQueryResponse = self.prolog.ensure_once(f"""
-        #                 kb_project([
-        #                     has_type(DCIndividual, {atom(somifiedDCName)}),
-        #                     new_iri(DCRole, soma:'DestinationContainer')
-        #                 ]).
-        #             """)
-        #     
-        # print("additionalInfoQueryResponse from rest call", additionalInfoQueryResponse)
+            
+            # add poses for source container
+            for pose in additional_information['SCPoses']:
+                poseStr = pose['X'] + ',' + pose['Y'] + ',' + pose['Z']
+                additionalPoseInfoQueryResponse = self.prolog.ensure_once(f"""
+                        kb_project([
+                            new_iri(ThreeDPoseMaxAngle, soma:'3DPosition'),
+                            has_type(ThreeDPoseMaxAngle, soma:'3DPosition'),
+                            holds(ThreeDPoseMaxAngle, soma:'hasPositionData', {atom(poseStr)}),
+                            holds({atom(SCName)}, dul:'hasRegion', ThreeDPoseMaxAngle),
+                            holds(ThreeDPoseMaxAngle, dul:'isObservableAt', {atom(actionQueryResponse['TimeInterval'])})
+                        ]).
+                    """)
+        elif(sub_action_type == "soma:'PouredInTo'"):
+            DCName = "soma:'" + additional_information['DCName'] + "'"
+            SixDPoseJointMax = additional_information['MaxPouringAngle']['X'] + ',' + \
+                                additional_information['MaxPouringAngle']['Y'] + ',' + \
+                                additional_information['MaxPouringAngle']['Z']
+            SixDPoseJointMin = additional_information['MinPouringAngle']['X'] + ',' + \
+                                additional_information['MinPouringAngle']['Y'] + ',' + \
+                                additional_information['MinPouringAngle']['Z']
+            additionalInfoQueryResponse = self.prolog.ensure_once(f"""
+                            kb_project([
+                                new_iri(DCRole, soma:'DestinationContainer'),
+                                has_type(DCRole, soma:'DestinationContainer'),
+                                has_role({atom(DCName)}, DCRole),
+                                holds(DCRole, dul:'isObservableAt', {atom(actionQueryResponse['TimeInterval'])}),
+                                new_iri(SixDPoseMaxAngle, soma:'6DPose'),
+                                has_type(SixDPoseMaxAngle, soma:'6DPose'),
+                                holds(SixDPoseMaxAngle, soma:'hasMaxPouringAngleData', {atom(SixDPoseJointMax)}),
+                                holds({atom(DCName)}, dul:'hasRegion', SixDPoseMaxAngle),
+                                holds(SixDPoseMaxAngle, dul:'isObservableAt', {atom(actionQueryResponse['TimeInterval'])}),
+                                new_iri(SixDPoseMinAngle, soma:'6DPose'),
+                                has_type(SixDPoseMinAngle, soma:'6DPose'),
+                                holds(SixDPoseMinAngle, soma:'hasMinPouringAngleData', {atom(SixDPoseJointMin)}),
+                                holds({atom(DCName)}, dul:'hasRegion', SixDPoseMinAngle),
+                                holds(SixDPoseMinAngle, dul:'isObservableAt', {atom(actionQueryResponse['TimeInterval'])})
+                            ]).
+                        """)
+    
+            # add poses for destination container
+            for pose in additional_information['DCPoses']:
+                poseStr = pose['X'] + ',' + pose['Y'] + ',' + pose['Z']
+                additionalPoseInfoQueryResponse = self.prolog.ensure_once(f"""
+                            kb_project([
+                                new_iri(ThreeDPoseMaxAngle, soma:'3DPosition'),
+                                has_type(ThreeDPoseMaxAngle, soma:'3DPosition'),
+                                holds(ThreeDPoseMaxAngle, soma:'hasPositionData', {atom(poseStr)}),
+                                holds({atom(DCName)}, dul:'hasRegion', ThreeDPoseMaxAngle),
+                                holds(ThreeDPoseMaxAngle, dul:'isObservableAt', {atom(actionQueryResponse['TimeInterval'])})
+                            ]).
+                        """)
+        
         return actionQueryResponse
 
     # Not used at the moment
@@ -400,7 +433,7 @@ class NEEMInterface:
             #             holds(SubAction, dul:'hasParticipant', SourceContainer),
             #             new_iri(SCRole, soma:'SourceContainer'),
             #             has_type(SCRole,soma:'Container'),
-            #             holds(SourceContainer, dul:'hasRole', SCRole),
+            #             has_role(SourceContainer, SCRole),
             #             new_iri(JointLimitMax, 'http://www.ease-crc.org/ont/SOMA-OBJ.owl#JointLimit'),
             #             has_type(JointLimitMax, 'http://www.ease-crc.org/ont/SOMA-OBJ.owl#JointLimit'),
             #             holds(JointLimitMax, 'http://www.ease-crc.org/ont/SOMA-OBJ.owl#hasJointPositionMax', {atom(max_pouring_angle)}),

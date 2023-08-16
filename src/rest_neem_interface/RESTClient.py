@@ -239,26 +239,18 @@ def post_add_subaction_with_task():
     additional_information = request.json['additional_event_info']
     game_participant = request.json['game_participant']
 
+    # check if the additional_information is of type str and then replace all double quotes with single for json to accept it as dict object
     if(type(additional_information) == str):
         additional_information = additional_information.replace("'", '"')
-    # print("additional_information", additional_information)
 
     # use the ast.literal_eval function to parse the string and create a dictionary object
-    additional_information_dict_obj = ast.literal_eval(additional_information)
-    # json_object = json.loads(additional_information)
-    
+    additional_information_dict_obj = []
+    if(len(additional_information) != 0):
+        additional_information_dict_obj = ast.literal_eval(additional_information)
+
     # print("create sub action call parent_action: %s , sub_action_type : %s , task_type: %s , start_time: %s , end_time: %s , objects_participated: %s , game_participant: %s "
     #       %(parent_action_iri, sub_action_type, task_type, start_time, end_time, objects_participated, game_participant))
 
-    print("json_object", additional_information_dict_obj['MaxPouringAngle'])
-    # print("additional info check", json_object['MaxPouringAngle'])
-    # 
-    # print("additional info check", json_object['SCName'])
-    # 
-    # print("additional info check", json_object['DCName'])
-
-    # print("additional info check", additional_information)
-    
     response = NEEMData().add_subaction_with_task(parent_action_iri, sub_action_type, task_type, start_time, end_time,
                                                   objects_participated, additional_information_dict_obj, game_participant)
     if response is not None:
