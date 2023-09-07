@@ -83,7 +83,7 @@ def get_handpose_at_start_of_action():
 
 @app.route("/knowrob/api/v1.0/get_source_container_while_grasping")
 def get_source_container_while_grasping():
-    response = NEEMData().get_source_container_while_grasping()
+    response = NEEMData().get_source_container_while_pouring()
     if response is not None:
         return jsonify(response), 200
     else:
@@ -93,7 +93,7 @@ def get_source_container_while_grasping():
 # this method at the moment will return Null because of knowrob issue
 @app.route("/knowrob/api/v1.0/get_source_container_pose_while_grasping")
 def get_source_container_pose_while_grasping():
-    response = NEEMData().get_source_container_pose_while_grasping()
+    response = NEEMData().get_source_container_pose_while_pouring()
     if response is not None:
         return jsonify(response), 200
     else:
