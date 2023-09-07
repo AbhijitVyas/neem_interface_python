@@ -71,15 +71,21 @@ class NEEMData(object):
         print("response with poses: ", response)
         return response
 
-    def get_source_container_while_grasping(self):
+    def get_source_container_while_pouring(self):
         # prolog exception will be raised if response is none
-        response = self.prolog.ensure_once("has_type(Tsk, soma:'Grasping'),executes_task(Act, Tsk), has_participant(Act, Obj), has_type(Role, soma:'SourceContainer'), triple(Obj, dul:'hasRole', Role)")
+        response = self.prolog.ensure_once("has_type(Tsk, soma:'Pouring'),executes_task(Act, Tsk), has_participant(Act, Obj), has_type(Role, soma:'SourceContainer'), has_role(Obj, Role), has_type(Obj, ObjType)")
         return response
 
-    def get_source_container_pose_while_grasping(self):
+
+    def get_source_container_pose_while_pouring(self):
         # prolog exception will be raised if response is none
-        # TODO: This call has bug from knowrob side, fix it. Call Human hand once bug is fixed 
-        response = self.prolog.once("has_type(Tsk, soma:'Grasping'),executes_task(Act, Tsk), has_participant(Act, Obj),event_interval(Act, Start, End),time_scope(Start, End, QScope),tf:tf_get_pose(Obj, [map, Pose, Rotation], QScope,_)")
+        response = self.prolog.once("has_type(Tsk, soma:'Pouring'),executes_task(Act, Tsk), has_participant(Act, Obj), has_type(Role, soma:'SourceContainer'), has_role(Obj, Role), holds(Role, dul:'isObservableAt', TI), holds(Obj, dul:'hasRegion', ThreeDPose), holds(ThreeDPose, dul:'isObservableAt', TI), holds(ThreeDPose, soma:'hasPositionData', Pose)")
+        print("response with poses: ", response)
+        return response
+
+    def get_target_container_pose_while_pouring(self):
+        # prolog exception will be raised if response is none
+        response = self.prolog.once("has_type(Tsk, soma:'Pouring'),executes_task(Act, Tsk), has_participant(Act, Obj), has_type(Role, soma:'DestinationContainer'), has_role(Obj, Role), holds(Role, dul:'isObservableAt', TI), holds(Obj, dul:'hasRegion', ThreeDPose), holds(ThreeDPose, dul:'isObservableAt', TI), holds(ThreeDPose, soma:'hasPositionData', Pose)")
         print("response with poses: ", response)
         return response
 
@@ -110,7 +116,7 @@ class NEEMData(object):
 
     def get_target_obj_for_pouring(self):
         # prolog exception will be raised if response is none 
-        response = self.prolog.once("has_type(Tsk, 'http://www.ease-crc.org/ont/SOMA-ACT.owl#Pouring'),executes_task(Act, Tsk), has_participant(Act, Obj), has_type(Role, soma:'DestinationContainer'), triple(Obj, dul:'hasRole', Role)")
+        response = self.prolog.once("has_type(Tsk, soma:'Pouring'),executes_task(Act, Tsk), has_participant(Act, Obj), has_type(Role, soma:'DestinationContainer'), has_role(Obj, Role), has_type(Obj, ObjType)")
         print("response with poses: ", response)
         return response
 
@@ -123,19 +129,19 @@ class NEEMData(object):
 
     def get_max_pouring_angle_for_source_obj(self):
         # prolog exception will be raised if response is none 
-        response = self.prolog.once("triple(Individual, 'http://www.ease-crc.org/ont/SOMA-OBJ.owl#hasJointPositionMax', AngleValue)")
+        response = self.prolog.once("has_type(Tsk, soma:'Pouring'),executes_task(Act, Tsk), has_participant(Act, Obj), has_type(Role, soma:'SourceContainer'), has_role(Obj, Role), holds(Role, dul:'isObservableAt', TI), holds(Obj, dul:'hasRegion', SixDPoseMaxAngle), holds(SixDPoseMaxAngle, dul:'isObservableAt', TI), holds(SixDPoseMaxAngle, soma:'hasMaxPouringAngleData', MAXAngle)")
         print("response with poses: ", response)
         return response
 
     def get_min_pouring_angle_for_source_obj(self):
         # prolog exception will be raised if response is none 
-        response = self.prolog.once("triple(Individual, 'http://www.ease-crc.org/ont/SOMA-OBJ.owl#hasJointPositionMin', AngleValue)")
+        response = self.prolog.once("has_type(Tsk, soma:'Pouring'),executes_task(Act, Tsk), has_participant(Act, Obj), has_type(Role, soma:'SourceContainer'), has_role(Obj, Role), holds(Role, dul:'isObservableAt', TI), holds(Obj, dul:'hasRegion', SixDPoseMaxAngle), holds(SixDPoseMaxAngle, dul:'isObservableAt', TI), holds(SixDPoseMaxAngle, soma:'hasMinPouringAngleData', MinAngle)")
         print("response with poses: ", response)
         return response
     
     def get_pouring_event_time_duration(self):
         # prolog exception will be raised if response is none 
-        response = self.prolog.once("has_type(Tsk, 'http://www.ease-crc.org/ont/SOMA-ACT.owl#Pouring'),executes_task(Act, Tsk), event_interval(Act, Begin, End)")
+        response = self.prolog.once("has_type(Tsk, soma:'Pouring'),executes_task(Act, Tsk), event_interval(Act, Begin, End)")
         print("response with poses: ", response)
         return response
     
@@ -152,15 +158,26 @@ class NEEMData(object):
         print("response with poses: ", response)
         return response
 
+    def add_subaction_with_task(self, parent_action_iri,
+                                sub_action_type, task_type,
+                                start_time, end_time, objects_participated, additional_information, game_participant):
+        response = self.neem_interface.add_vr_subaction_with_task(parent_action_iri, sub_action_type, task_type,
+                                                                  start_time, end_time, objects_participated,
+                                                                  additional_information, game_participant)
+        # print("Creating a sub action with response: ", response)
+        return response
 
-    def add_subaction_with_task(self, parent_action_iri, sub_action_type, task_type, start_time, end_time, objects_participated, game_participant):
-        response = self.neem_interface.add_vr_subaction_with_task(parent_action_iri, sub_action_type, task_type, start_time, end_time, objects_participated, game_participant)
-        print("Creating a sub action with response: ", response)
+    def add_additional_pouring_information(self, parent_action_iri, sub_action_type, max_pouring_angle,
+                                           min_pouring_angle, source_container, destination_container, pouring_pose):
+        response = self.neem_interface.add_additional_pouring_information(parent_action_iri, sub_action_type,
+                                                                          max_pouring_angle, min_pouring_angle,
+                                                                          source_container, destination_container,
+                                                                          pouring_pose)
         return response
 
     def create_actor(self):
         response = self.neem_interface.create_actor()
-        print("Creating a new actor with response: ", response)
+        # print("Creating a new actor with response: ", response)
         return response
 
     def find_all_actors(self):
@@ -170,7 +187,7 @@ class NEEMData(object):
             data = {}
             data['Actor'] = actor[0]
             response_data.append(data)
-        print("response with actor: ", response_data)
+        # print("response with actor: ", response_data)
         return response_data
 
 
