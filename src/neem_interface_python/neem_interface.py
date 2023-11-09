@@ -276,12 +276,22 @@ class NEEMInterface:
         return response
 
     def create_actor_by_given_name(self, actor_name):
-        response = self.prolog.ensure_once(f"""
+        response = self.prolog.once(f"""
                 kb_project([
                     has_type({atom(actor_name)}, dul:'NaturalPerson')
                 ]).
             """)
         return response
+
+    # def get_actor_by_given_name(self, actor_name):
+    #     response = self.prolog.ensure_once(f"""
+    #             kb_project([
+    #                 triple({atom(actor_name)}, 'http://www.w3.org/1999/02/22-rdf-syntax-ns#type', dul: 'NaturalPerson').
+    #             ]).
+    #                 """)
+    #     print("actor with given name: ",  response)
+    #     return response
+
 
     def get_time(self):
         response = self.prolog.ensure_once("get_time(Time)")
@@ -298,6 +308,7 @@ class NEEMInterface:
                                    game_participant) -> str:
 
         # TODO: get an actor if it exists otherwise create a new one
+
         self.create_actor_by_given_name(game_participant)
         actionQueryResponse = self.prolog.ensure_once(f"""
                 kb_project([
@@ -334,6 +345,8 @@ class NEEMInterface:
                         holds({atom(actionQueryResponse['SubAction'])}, dul:'hasParticipant', {atom(somifiedIndividualName)})
                     ]).
                 """)
+
+
         # Add additional info in case of Pouring
         if(sub_action_type == "soma:'PouredOut'"):
             SixDPoseJointMax = additional_information['MaxPouringAngle']['X'] + ',' + \
@@ -361,7 +374,7 @@ class NEEMInterface:
                             holds(SixDPoseMinAngle, dul:'isObservableAt', {atom(actionQueryResponse['TimeInterval'])})
                         ]).
                     """)
-            
+
             # add poses for source container
             for pose in additional_information['SCPoses']:
                 poseStr = pose['X'] + ',' + pose['Y'] + ',' + pose['Z']
@@ -400,7 +413,7 @@ class NEEMInterface:
                                 holds(SixDPoseMinAngle, dul:'isObservableAt', {atom(actionQueryResponse['TimeInterval'])})
                             ]).
                         """)
-    
+
             # add poses for destination container
             for pose in additional_information['DCPoses']:
                 poseStr = pose['X'] + ',' + pose['Y'] + ',' + pose['Z']
@@ -469,6 +482,7 @@ class NEEMInterface:
         it(as start time) to the top level action and extra tf frames can be ignored
         """
         # TODO: get an actor if it exists otherwise create a new one
+        # self.get_actor_by_given_name(game_participant)
         self.create_actor_by_given_name(game_participant)
         episodeQueryResponse = self.prolog.ensure_once(f"""
                 tf_logger_enable,
