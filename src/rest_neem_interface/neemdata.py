@@ -1,15 +1,8 @@
 #!/usr/bin/env python3
-import os
-from concurrent.futures import ThreadPoolExecutor
-from typing import List, Tuple, Optional
-import time
 
-from src.neem_interface_python.rosprolog_client import Prolog, atom
-from src.neem_interface_python.neem_interface import NEEMInterface
-import json
+from neem_interface_python.rosprolog_client import Prolog, atom
+from neem_interface_python.neem_interface import NEEMInterface
 
-
-SCRIPT_DIR = os.path.dirname(os.path.abspath(__file__))
 neem_uri = '/home/avyas/catkin_ws/src/pouring_apartment_neem/NEEM'
 
 class NEEMData(object):

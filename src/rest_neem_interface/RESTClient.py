@@ -1,20 +1,12 @@
-#!/usr/bin/env python3
-import os
-from flask import Flask, render_template, jsonify, request
-from flask_restful import Resource, Api, reqparse
-import pandas as pd
-from .neemdata import NEEMData
-
-SCRIPT_DIR = os.path.dirname(os.path.abspath(__file__))
+from flask import Flask, jsonify, request
+from neemdata import NEEMData
+import argparse
 
 app = Flask(__name__)
-api = Api(app)
-
 
 @app.route("/")
 def get_hello_world():
     return "Hello, World!"
-
 
 @app.route("/knowrob/api/v1.0/load_neem_to_kb")
 def get_neem_to_load_into_kb():
@@ -23,17 +15,6 @@ def get_neem_to_load_into_kb():
         return jsonify("successfully restored neem to mongodb"), 200
     else:
         return jsonify(response), 400
-
-
-# not working at the moment
-# @app.route("/clear_kb")
-# def clear_knowledge_base():
-#    response = NEEMData().clear_beliefstate()
-#    if response is not None:
-#        return jsonify("successfully wiped-out mongodb kb"), 200
-#    else:
-#        return jsonify(response), 400
-
 
 @app.route("/knowrob/api/v1.0/get_all_actions")
 def get_all_actions():
@@ -275,4 +256,11 @@ def post_finish_episode():
 #     if response is not None:
 #         return jsonify(response), 200
 #     else:
-#         return jsonify(response), 400
+#         return jsonify(response), 400 
+if __name__ == '__main__':
+    parser = argparse.ArgumentParser(prog="RESTClient", description="Starts the REST Server to interface with ROSProlog.")
+    parser.add_argument('--host', type=str, default="0.0.0.0", help="IP Address for the server.")
+    parser.add_argument('--nodebug', action="store_false",help="Do not run the server in debug mode")
+    parser.add_argument('--port', type=int, default=8000, help="Port that the server listens on.")
+    args = parser.parse_args()
+    app.run(host=args.host,debug=args.nodebug, port=args.port)
