@@ -205,6 +205,7 @@ def create_actor():
 @app.route("/knowrob/api/v1.0/create_actor_by_given_name", methods = ['GET', 'POST'])
 def create_actor_by_given_name():
     actor_name = request.json['actor_name']
+    print("actor with given name REST: ", actor_name)
     response = NEEMData().create_actor_by_given_name(actor_name)
     if response is not None:
         return jsonify(response), 200
@@ -289,6 +290,7 @@ def create_episode():
     game_participant = request.json['game_participant']
     print("create an episode with game_participant: %s "
           %(game_participant))
+    NEEMData().create_actor_by_given_name(game_participant)
 
     response = NEEMData().create_episode(game_participant)
     if response is not None:

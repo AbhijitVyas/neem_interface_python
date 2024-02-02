@@ -282,21 +282,13 @@ class NEEMInterface:
         return response
 
     def create_actor_by_given_name(self, actor_name):
-        response = self.prolog.once(f"""
+        response = self.prolog.ensure_once(f"""
                 kb_project([
                     has_type({atom(actor_name)}, dul:'NaturalPerson')
                 ]).
             """)
+        print("actor with given name: ",  response)
         return response
-
-    # def get_actor_by_given_name(self, actor_name):
-    #     response = self.prolog.ensure_once(f"""
-    #             kb_project([
-    #                 triple({atom(actor_name)}, 'http://www.w3.org/1999/02/22-rdf-syntax-ns#type', dul: 'NaturalPerson').
-    #             ]).
-    #                 """)
-    #     print("actor with given name: ",  response)
-    #     return response
 
 
     def get_time(self):
@@ -315,7 +307,7 @@ class NEEMInterface:
 
         # TODO: get an actor if it exists otherwise create a new one
 
-        self.create_actor_by_given_name(game_participant)
+        # self.create_actor_by_given_name(game_participant)
         actionQueryResponse = self.prolog.ensure_once(f"""
                 kb_project([
                     new_iri(SubAction, {atom(sub_action_type)}), has_type(SubAction, {atom(sub_action_type)}),
@@ -342,7 +334,7 @@ class NEEMInterface:
             objects = object_with_class_name.split(":")
             if len(objects) > 1:
                 somifiedClassName = "soma:'" + objects[0] + "'"
-                somifiedIndividualName = "soma:'" + objects[1] + "'"
+                somifiedIndividualName = "soma:'" + objects[1] + "_1'"  # add _1 here as instance name so that it is different from class name and matches to owl NamedIndividual name
                 # now write prolog query
                 objParticipateQueryResponse = self.prolog.ensure_once(f"""
                     kb_project([
@@ -453,9 +445,8 @@ class NEEMInterface:
         - Here you get time later once the tf logger has started logging the tf frames so that you can assign 
         it(as start time) to the top level action and extra tf frames can be ignored
         """
-        # TODO: get an actor if it exists otherwise create a new one
-        # self.get_actor_by_given_name(game_participant)
-        self.create_actor_by_given_name(game_participant)
+        #get an actor if it exists otherwise create a new one
+
         episodeQueryResponse = self.prolog.ensure_once(f"""
                 tf_logger_enable,
                 get_time(Time),
