@@ -1,12 +1,17 @@
+#!/usr/bin/env python3
+import sys
 import os
+sys.path.append(os.getcwd() + "/../../../src/")
+from neem_interface_python.rosprolog_client import Prolog, atom
+from neem_interface_python.utils.utils import Datapoint, Pose
 from concurrent.futures import ThreadPoolExecutor
 from typing import List, Tuple, Optional
 import time
 
 from tqdm import tqdm
 
-from neem_interface_python.rosprolog_client import Prolog, atom
-from neem_interface_python.utils.utils import Datapoint, Pose
+
+
 
 class NEEMError(Exception):
     pass
@@ -23,9 +28,10 @@ class NEEMInterface:
         self.pool_executor = ThreadPoolExecutor(max_workers=4)
 
         # Load neem-interface.pl into KnowRob
-        neem_interface_path = "/home/avyas/catkin_ws/src/neem_interface_python/src/neem-interface/neem-interface/neem-interface.pl"
-        print("neem interface path", neem_interface_path)
-        self.prolog.ensure_once("ensure_loaded('" + neem_interface_path + "')")
+        # print("SCRIPT_DIR", SCRIPT_DIR)
+        # neem_interface_path = SCRIPT_DIR + "/../neem-interface/neem-interface.pl"
+        # print("neem interface path", neem_interface_path)
+        # self.prolog.ensure_once("ensure_loaded('" + neem_interface_path + "')")
 
     def __del__(self):
         # Wait for all currently running futures
@@ -267,7 +273,8 @@ class NEEMInterface:
         return naturalPersonQueryResponse
 
     def find_all_actors(self):
-        response = self.prolog.ensure_once("findall([Actor],(is_agent(Actor), has_type(Actor, dul:'NaturalPerson')), Actor)")
+        response = self.prolog.ensure_once(
+            "findall([Actor],(is_agent(Actor), has_type(Actor, dul:'NaturalPerson')), Actor)")
         return response
 
     def create_actor_by_given_name(self, actor_name):
@@ -276,8 +283,10 @@ class NEEMInterface:
                     has_type({atom(actor_name)}, dul:'NaturalPerson')
                 ]).
             """)
+        print("actor with given name: ",  response)
         return response
-    
+
+
     def get_time(self):
         response = self.prolog.ensure_once("get_time(Time)")
         print("response with time: ", response)
@@ -289,10 +298,12 @@ class NEEMInterface:
                                    task_type,
                                    start_time, end_time,
                                    objects_participated,
+                                   additional_information,
                                    game_participant) -> str:
 
         # TODO: get an actor if it exists otherwise create a new one
-        self.create_actor_by_given_name(game_participant)
+
+        # self.create_actor_by_given_name(game_participant)
         actionQueryResponse = self.prolog.ensure_once(f"""
                 kb_project([
                     new_iri(SubAction, {atom(sub_action_type)}), has_type(SubAction, {atom(sub_action_type)}),
@@ -308,9 +319,8 @@ class NEEMInterface:
                     has_type({atom(game_participant)}, dul:'NaturalPerson'), is_performed_by(SubAction,{atom(game_participant)})
                 ]).
             """)
-        
+
         # for each object do this for the action with iri
-        # print("objects_participated from rest call", objects_participated)
         objects_participated = objects_participated.replace("[", "")
         objects_participated = objects_participated.replace("]", "")
         # here the object_with_class_name is arranged like this somaClassName:IndividualName
@@ -318,9 +328,9 @@ class NEEMInterface:
         # print("objects split: ", objects)
         for object_with_class_name in objects_with_class_name:
             objects = object_with_class_name.split(":")
-            if len(objects) > 1 :
+            if len(objects) > 1:
                 somifiedClassName = "soma:'" + objects[0] + "'"
-                somifiedIndividualName = "soma:'" + objects[1] + "'"
+                somifiedIndividualName = "soma:'" + objects[1] + "_1'"  # add _1 here as instance name so that it is different from class name and matches to owl NamedIndividual name
                 # now write prolog query
                 objParticipateQueryResponse = self.prolog.ensure_once(f"""
                     kb_project([
@@ -330,6 +340,97 @@ class NEEMInterface:
                     ]).
                 """)
 
+
+        # Add additional info in case of Pouring
+        self.add_additional_pouring_information(sub_action_type, additional_information, actionQueryResponse)
+
+        # Add additional info in case of cutting
+
+        # Add additional info in case of cleaning
+
+        return actionQueryResponse
+
+    # Not used at the moment
+    def add_additional_pouring_information(self, sub_action_type, additional_information, actionQueryResponse):
+        if (sub_action_type == "soma:'PouredOut'"):
+            SixDPoseJointMax = additional_information['MaxPouringAngle']['X'] + ',' + \
+                               additional_information['MaxPouringAngle']['Y'] + ',' + \
+                               additional_information['MaxPouringAngle']['Z']
+            SixDPoseJointMin = additional_information['MinPouringAngle']['X'] + ',' + \
+                               additional_information['MinPouringAngle']['Y'] + ',' + \
+                               additional_information['MinPouringAngle']['Z']
+            SCName = "soma:'" + additional_information['SCName'] + "'"
+            additionalInfoQueryResponse = self.prolog.ensure_once(f"""
+                                kb_project([
+                                    new_iri(SCRole, soma:'SourceContainer'),
+                                    has_type(SCRole, soma:'SourceContainer'),
+                                    has_role({atom(SCName)}, SCRole),
+                                    holds(SCRole, dul:'isObservableAt', {atom(actionQueryResponse['TimeInterval'])}),
+                                    new_iri(SixDPoseMaxAngle, soma:'6DPose'),
+                                    has_type(SixDPoseMaxAngle, soma:'6DPose'),
+                                    holds(SixDPoseMaxAngle, soma:'hasMaxPouringAngleData', {atom(SixDPoseJointMax)}),
+                                    holds({atom(SCName)}, dul:'hasRegion', SixDPoseMaxAngle),
+                                    holds(SixDPoseMaxAngle, dul:'isObservableAt', {atom(actionQueryResponse['TimeInterval'])}),
+                                    new_iri(SixDPoseMinAngle, soma:'6DPose'),
+                                    has_type(SixDPoseMinAngle, soma:'6DPose'),
+                                    holds(SixDPoseMinAngle, soma:'hasMinPouringAngleData', {atom(SixDPoseJointMin)}),
+                                    holds({atom(SCName)}, dul:'hasRegion', SixDPoseMinAngle),
+                                    holds(SixDPoseMinAngle, dul:'isObservableAt', {atom(actionQueryResponse['TimeInterval'])})
+                                ]).
+                            """)
+
+            # add poses for source container
+            for pose in additional_information['SCPoses']:
+                poseStr = pose['X'] + ',' + pose['Y'] + ',' + pose['Z']
+                additionalPoseInfoQueryResponse = self.prolog.ensure_once(f"""
+                                kb_project([
+                                    new_iri(ThreeDPoseMaxAngle, soma:'3DPosition'),
+                                    has_type(ThreeDPoseMaxAngle, soma:'3DPosition'),
+                                    holds(ThreeDPoseMaxAngle, soma:'hasPositionData', {atom(poseStr)}),
+                                    holds({atom(SCName)}, dul:'hasRegion', ThreeDPoseMaxAngle),
+                                    holds(ThreeDPoseMaxAngle, dul:'isObservableAt', {atom(actionQueryResponse['TimeInterval'])})
+                                ]).
+                            """)
+        elif (sub_action_type == "soma:'PouredInTo'"):
+            DCName = "soma:'" + additional_information['DCName'] + "'"
+            SixDPoseJointMax = additional_information['MaxPouringAngle']['X'] + ',' + \
+                               additional_information['MaxPouringAngle']['Y'] + ',' + \
+                               additional_information['MaxPouringAngle']['Z']
+            SixDPoseJointMin = additional_information['MinPouringAngle']['X'] + ',' + \
+                               additional_information['MinPouringAngle']['Y'] + ',' + \
+                               additional_information['MinPouringAngle']['Z']
+            additionalInfoQueryResponse = self.prolog.ensure_once(f"""
+                                    kb_project([
+                                        new_iri(DCRole, soma:'DestinationContainer'),
+                                        has_type(DCRole, soma:'DestinationContainer'),
+                                        has_role({atom(DCName)}, DCRole),
+                                        holds(DCRole, dul:'isObservableAt', {atom(actionQueryResponse['TimeInterval'])}),
+                                        new_iri(SixDPoseMaxAngle, soma:'6DPose'),
+                                        has_type(SixDPoseMaxAngle, soma:'6DPose'),
+                                        holds(SixDPoseMaxAngle, soma:'hasMaxPouringAngleData', {atom(SixDPoseJointMax)}),
+                                        holds({atom(DCName)}, dul:'hasRegion', SixDPoseMaxAngle),
+                                        holds(SixDPoseMaxAngle, dul:'isObservableAt', {atom(actionQueryResponse['TimeInterval'])}),
+                                        new_iri(SixDPoseMinAngle, soma:'6DPose'),
+                                        has_type(SixDPoseMinAngle, soma:'6DPose'),
+                                        holds(SixDPoseMinAngle, soma:'hasMinPouringAngleData', {atom(SixDPoseJointMin)}),
+                                        holds({atom(DCName)}, dul:'hasRegion', SixDPoseMinAngle),
+                                        holds(SixDPoseMinAngle, dul:'isObservableAt', {atom(actionQueryResponse['TimeInterval'])})
+                                    ]).
+                                """)
+
+            # add poses for destination container
+            for pose in additional_information['DCPoses']:
+                poseStr = pose['X'] + ',' + pose['Y'] + ',' + pose['Z']
+                additionalPoseInfoQueryResponse = self.prolog.ensure_once(f"""
+                                    kb_project([
+                                        new_iri(ThreeDPoseMaxAngle, soma:'3DPosition'),
+                                        has_type(ThreeDPoseMaxAngle, soma:'3DPosition'),
+                                        holds(ThreeDPoseMaxAngle, soma:'hasPositionData', {atom(poseStr)}),
+                                        holds({atom(DCName)}, dul:'hasRegion', ThreeDPoseMaxAngle),
+                                        holds(ThreeDPoseMaxAngle, dul:'isObservableAt', {atom(actionQueryResponse['TimeInterval'])})
+                                    ]).
+                                """)
+        
         return actionQueryResponse
 
     # this method creates a new episode with suppliment information such as who performs it, 
@@ -340,8 +441,8 @@ class NEEMInterface:
         - Here you get time later once the tf logger has started logging the tf frames so that you can assign 
         it(as start time) to the top level action and extra tf frames can be ignored
         """
-        # TODO: get an actor if it exists otherwise create a new one
-        self.create_actor_by_given_name(game_participant)
+        #get an actor if it exists otherwise create a new one
+
         episodeQueryResponse = self.prolog.ensure_once(f"""
                 tf_logger_enable,
                 get_time(Time),
@@ -381,6 +482,9 @@ class NEEMInterface:
             """)
         # response include Instances of Action, and TimeInterval
         return episodeQueryResponse
+
+    # def hand_participate_in_action(self, hand_type):
+
 
     # def hand_participate_in_action(self, hand_type):
         
