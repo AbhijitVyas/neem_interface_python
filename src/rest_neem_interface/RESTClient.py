@@ -2,7 +2,7 @@
 import os
 from flask import Flask, jsonify, request
 from flask_restful import Api
-from .neemdata import NEEMData
+from neemdata import NEEMData
 import ast
 SCRIPT_DIR = os.path.dirname(os.path.abspath(__file__))
 
