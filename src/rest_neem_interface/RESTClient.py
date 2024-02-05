@@ -4,6 +4,8 @@ from flask import Flask, jsonify, request
 from flask_restful import Api
 from neemdata import NEEMData
 import ast
+import argparse
+
 SCRIPT_DIR = os.path.dirname(os.path.abspath(__file__))
 
 app = Flask(__name__)
@@ -314,3 +316,11 @@ def post_finish_episode():
 #         return jsonify(response), 200
 #     else:
 #         return jsonify(response), 400
+
+if __name__ == '__main__':
+    parser = argparse.ArgumentParser(prog="RESTClient", description="Starts the REST Server to interface with ROSProlog.")
+    parser.add_argument('--host', type=str, default="0.0.0.0", help="IP Address for the server.")
+    parser.add_argument('--nodebug', action="store_false",help="Do not run the server in debug mode")
+    parser.add_argument('--port', type=int, default=8000, help="Port that the server listens on.")
+    args = parser.parse_args()
+    app.run(host=args.host,debug=args.nodebug, port=args.port)
