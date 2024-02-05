@@ -2,8 +2,7 @@
 import sys
 import os
 sys.path.append(os.getcwd() + "/../../../src/")
-import neem_interface_python
-from neem_interface_python.src.neem_interface_python.rosprolog_client import atom, Prolog
+from neem_interface_python.rosprolog_client import atom, Prolog
 from typing import List
 
 from scipy.spatial.transform import Rotation
