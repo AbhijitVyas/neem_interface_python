@@ -216,3 +216,30 @@ class NEEMData(object):
         response = self.neem_interface.get_time()
         # print("response with time: ", response)
         return response
+
+############################################ Bootstrapping predicates #######################################
+
+    def define_task(self, task_def, environment, agent):
+        task_type_query_response, source_query_response, dest_query_response, substance_query_response, goal_query_response = self.neem_interface.define_task(task_def, environment, agent)
+        # print("response with time: ", response)
+        return task_type_query_response, source_query_response, dest_query_response, substance_query_response, goal_query_response
+
+    def get_task_def(self):
+        response = self.prolog.ensure_once("findall([TaskDef],(has_type(TaskDef, soma:'Natural_Language_Text')), TaskDef)")
+        return response
+
+    def get_tasks(self):
+        response = self.prolog.ensure_once("findall([Task],(has_type(Task, dul:'Task')), Task)")
+        return response
+
+    def get_type(self, obj):
+        response = self.neem_interface.get_type(obj)
+        return response
+
+    def get_role(self, obj):
+        response = self.neem_interface.get_role(obj)
+        return response
+
+    def add_primitive_action_to_task(self, action_iri, primitive_actions, environment, agent):
+        response = self.neem_interface.add_primitive_action_to_task(action_iri, primitive_actions, environment, agent)
+        return response

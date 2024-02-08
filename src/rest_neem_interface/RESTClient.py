@@ -317,3 +317,69 @@ def post_finish_episode():
 #         return jsonify(response), 200
 #     else:
 #         return jsonify(response), 400
+
+
+
+############################################ Bootstrapping predicates #######################################
+@app.route("/knowrob/api/v1.0/define_task", methods = ['GET', 'POST'])
+def define_task():
+    task_def = request.json['task_def']
+    environment = request.json['environment']
+    agent = request.json['agent']
+    print("Given values : %s, %s, %s ", task_def, environment, agent)
+
+    task_type_query_response, source_query_response, dest_query_response, substance_query_response, goal_query_response = NEEMData().define_task(task_def, environment, agent)
+    if task_type_query_response is not None:
+        return jsonify(task_type_query_response, source_query_response, dest_query_response, substance_query_response, goal_query_response), 200
+    else:
+        return jsonify(task_type_query_response), 400
+
+
+@app.route("/knowrob/api/v1.0/get_all_task_def", methods = ['GET', 'POST'])
+def get_all_task_def():
+    response = NEEMData().get_task_def()
+    if response is not None:
+        return jsonify(response), 200
+    else:
+        return jsonify(response), 400
+
+
+@app.route("/knowrob/api/v1.0/get_tasks", methods = ['GET', 'POST'])
+def get_tasks():
+    response = NEEMData().get_tasks()
+    if response is not None:
+        return jsonify(response), 200
+    else:
+        return jsonify(response), 400
+
+@app.route("/knowrob/api/v1.0/get_type", methods=['GET', 'POST'])
+def get_type():
+    obj = request.json['obj']
+    response = NEEMData().get_type(obj)
+    if response is not None:
+        return jsonify(response), 200
+    else:
+        return jsonify(response), 400
+
+@app.route("/knowrob/api/v1.0/get_role", methods=['GET', 'POST'])
+def get_role():
+    obj = request.json['obj']
+    response = NEEMData().get_role(obj)
+    if response is not None:
+        return jsonify(response), 200
+    else:
+        return jsonify(response), 400
+
+
+@app.route("/knowrob/api/v1.0/add_primitive_action_to_task", methods=['GET', 'POST'])
+def add_primitive_action_to_task():
+    action_iri = request.json['action_iri']
+    primitive_actions = request.json['primitive_actions']
+    environment = request.json['environment']
+    agent = request.json['agent']
+    print("Given values : %s, %s, %s %s", action_iri, primitive_actions, environment, agent)
+    response = NEEMData().add_primitive_action_to_task(action_iri, primitive_actions, environment, agent)
+    if response is not None:
+        return jsonify(response), 200
+    else:
+        return jsonify(response), 400
