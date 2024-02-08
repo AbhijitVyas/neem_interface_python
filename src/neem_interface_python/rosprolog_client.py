@@ -5,8 +5,8 @@ Rosprolog client loosely coupled to ROS and compatible with Python 3
 import sys
 import os
 sys.path.append(os.getcwd() + "/../../../src/")
-import neem_interface_python
-from neem_interface_python.src.neem_interface_python.utils.rosbridge import ros_client
+
+from utils.rosbridge import ros_client
 import json
 from enum import Enum
 from typing import Optional, Dict, List, Iterator
