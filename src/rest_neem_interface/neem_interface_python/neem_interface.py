@@ -7,15 +7,10 @@ from neem_interface_python.utils.utils import Datapoint, Pose
 from concurrent.futures import ThreadPoolExecutor
 from typing import List, Tuple, Optional
 import time
-
 from tqdm import tqdm
-
-
-
 
 class NEEMError(Exception):
     pass
-
 
 class NEEMInterface:
     """
