@@ -19,8 +19,7 @@ def get_hello_world():
 
 @app.route("/knowrob/api/v1.0/<string:function>")
 def get_neem_data(function):
-    func = getattr(neem_data,function)
-    response = func()
+    response = getattr(neem_data,function)()
     return (jsonify(response), 200 if response else 400)
 
 @app.route("/knowrob/api/v1.0/create_actor_by_given_name", methods = ['GET', 'POST'])
