@@ -1,21 +1,13 @@
 #!/usr/bin/env python3
-import os
 from flask import Flask, jsonify, request
 from flask_restful import Api
 import ast
 import argparse
 from neemdata import NEEMData
-from neem_interface_python.neem_interface import NEEMInterface
-
-SCRIPT_DIR = os.path.dirname(os.path.abspath(__file__))
 
 app = Flask(__name__)
 api = Api(app)
 neem_data = NEEMData()
-
-@app.route("/")
-def get_hello_world():
-    return "Hello, World!"
 
 @app.route("/knowrob/api/v1.0/<string:function>")
 def get_neem_data(function):
