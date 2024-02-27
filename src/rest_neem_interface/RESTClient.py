@@ -56,20 +56,13 @@ def post_add_subaction_with_task():
 
 @app.route("/knowrob/api/v1.0/add_additional_pouring_information", methods = ['GET', 'POST'])
 def post_add_additional_pouring_information():
-    parent_action_iri = request.json['parent_action_iri']
-    sub_action_type = request.json['sub_action_type']
-    max_pouring_angle = request.json['max_pouring_angle']
-    min_pouring_angle = request.json['min_pouring_angle']
-    source_container = request.json['source_container']
-    destination_container = request.json['destination_container']
-    pouring_pose = request.json['pouring_pose']
-    response = neem_data.add_additional_pouring_information(parent_action_iri, sub_action_type, max_pouring_angle, min_pouring_angle, source_container, destination_container, pouring_pose)
+    response = neem_data.add_additional_pouring_information(**request.json)
     return (jsonify(response), 200 if response else 400)
 
 @app.route("/knowrob/api/v1.0/create_episode", methods = ['GET', 'POST'])
 def create_episode():
     game_participant = request.json['game_participant']
-    print("create an episode with game_participant: %s " %(game_participant))
+    print("create an episode with game_participant: {}".format(game_participant))
     neem_data.create_actor_by_given_name(game_participant)
     response = neem_data.create_episode(game_participant)
     return (jsonify(response), 200 if response else 400)
@@ -78,7 +71,7 @@ def create_episode():
 @app.route("/knowrob/api/v1.0/finish_episode", methods = ['GET', 'POST'])
 def post_finish_episode():
     episode_iri = request.json['episode_iri']
-    print("finish an episode with iri: %s " %(episode_iri))
+    print("finish an episode with iri: {}".format(episode_iri))
     response = neem_data.finish_episode(episode_iri)
     return (jsonify(response), 200 if response else 400)
 
