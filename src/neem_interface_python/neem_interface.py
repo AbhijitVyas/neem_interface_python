@@ -305,8 +305,6 @@ class NEEMInterface:
                                    additional_information,
                                    game_participant) -> str:
 
-        # TODO: get an actor if it exists otherwise create a new one
-
         # self.create_actor_by_given_name(game_participant)
         actionQueryResponse = self.prolog.ensure_once(f"""
                 kb_project([
@@ -336,6 +334,7 @@ class NEEMInterface:
                 somifiedClassName = "soma:'" + objects[0] + "'"
                 somifiedIndividualName = "soma:'" + objects[1] + "_1'"  # add _1 here as instance name so that it is different from class name and matches to owl NamedIndividual name
                 # now write prolog query
+                # TODO: Test it with holds({atom(somifiedIndividualName)}, urdf:'HasBaseLink', {atom(somifiedClassName)})
                 objParticipateQueryResponse = self.prolog.ensure_once(f"""
                     kb_project([
                         has_type({atom(somifiedIndividualName)}, {atom(somifiedClassName)}),
@@ -439,7 +438,7 @@ class NEEMInterface:
 
     # this method creates a new episode with suppliment information such as who performs it, 
     # and which top level action it includes. 
-    def start_vr_episode(self, game_participant):
+    def start_vr_episode(self, game_participant, game_start_time):
         """
         - Start an episode and return the prolog atom for the corresponding response.
         - Here you get time later once the tf logger has started logging the tf frames so that you can assign 
@@ -449,14 +448,13 @@ class NEEMInterface:
 
         episodeQueryResponse = self.prolog.ensure_once(f"""
                 tf_logger_enable,
-                get_time(Time),
                 kb_project([
                     new_iri(Episode, soma:'Episode'), has_type(Episode, soma:'Episode'),
                     new_iri(Action, dul:'Action'), has_type(Action, dul:'Action'),
                     new_iri(TimeInterval, dul:'TimeInterval'),
                     has_type(TimeInterval,dul:'TimeInterval'),
                     holds(Action, dul:'hasTimeInterval', TimeInterval),
-                    holds(TimeInterval, soma:'hasIntervalBegin', Time),
+                    holds(TimeInterval, soma:'hasIntervalBegin', {game_start_time}),
                     new_iri(Task, dul:'Task'), has_type(Task,dul:'Task'), executes_task(Action,Task),
                     is_setting_for(Episode,Task),
                     triple(Episode, dul:includesAction, Action),
@@ -469,19 +467,18 @@ class NEEMInterface:
         return episodeQueryResponse
 
     # this method stops the current running episode
-    def stop_vr_episode(self, episode_iri):
+    def stop_vr_episode(self, episode_iri, game_end_time):
         """
         - stop an episode and return the prolog atom for the corresponding action.
         - Here you get time first so that you can assign it to the top level action(as end time)
         and then stop the tf logger so extra frames can be ignored
         """
         episodeQueryResponse = self.prolog.ensure_once(f"""
-                get_time(Time),
                 tf_logger_disable,
                 triple({atom(episode_iri)}, dul:'includesAction', Action),
                 holds(Action, dul:'hasTimeInterval', TimeInterval),
                 kb_project([
-                     holds(TimeInterval, soma:'hasIntervalEnd', Time)
+                     holds(TimeInterval, soma:'hasIntervalEnd', {game_end_time})
                 ]).
             """)
         # response include Instances of Action, and TimeInterval
