@@ -32,6 +32,7 @@ def post_add_subaction_with_task():
     additional_information = request.json['additional_event_info']
     game_participant = request.json['game_participant']
 
+    print('sub action %s with start time %s and endtime %s', sub_action_type, start_time, end_time)
     # check if the additional_information is of type str and then replace all double quotes with single for json to accept it as dict object
     if(type(additional_information) == str):
         additional_information = additional_information.replace("'", '"')
@@ -54,18 +55,31 @@ def post_add_additional_pouring_information():
 @app.route("/knowrob/api/v1.0/create_episode", methods = ['GET', 'POST'])
 def create_episode():
     game_participant = request.json['game_participant']
-    print("create an episode with game_participant: {}".format(game_participant))
-    neem_data.create_actor_by_given_name(game_participant)
-    response = neem_data.create_episode(game_participant)
+    game_start_time = request.json['game_start_time']
+    print("create an episode with game_participant: %s " %(game_participant))
+    NEEMData().create_actor_by_given_name(game_participant)
+    print("create an episode with game_Start_time: %s " % (game_start_time))
+    response = NEEMData().create_episode(game_participant, game_start_time)
     return (jsonify(response), 200 if response else 400)
 
 
 @app.route("/knowrob/api/v1.0/finish_episode", methods = ['GET', 'POST'])
 def post_finish_episode():
     episode_iri = request.json['episode_iri']
-    print("finish an episode with iri: {}".format(episode_iri))
-    response = neem_data.finish_episode(episode_iri)
+    game_end_time = request.json['game_end_time']
+    print("finish an episode with iri: %s " %(episode_iri))
+    print("finish an episode with game_Stop_time: %s " % (game_end_time))
+    response = NEEMData().finish_episode(episode_iri, game_end_time)
     return (jsonify(response), 200 if response else 400)
+
+# @app.route("/knowrob/api/v1.0/hand_participate", methods = ['GET', 'POST'])
+# def post_finish_episode():
+#     hand_type = request.json['hand_type']
+#     response = NEEMData().hand_participate_in_action(hand_type)
+#     if response is not None:
+#         return jsonify(response), 200
+#     else:
+#         return jsonify(response), 400
 
 if __name__ == '__main__':
     parser = argparse.ArgumentParser(prog="RESTClient", description="Starts the REST Server to interface with ROSProlog.")

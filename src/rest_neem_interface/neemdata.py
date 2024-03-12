@@ -108,11 +108,29 @@ class NEEMData(object):
     def create_actor_by_given_name(self, actor_name):
         return self.neem_interface.create_actor_by_given_name(actor_name)
 
-    def create_episode(self, game_participant):
-        return self.neem_interface.start_vr_episode(game_participant)
+    def create_episode(self, game_participant,game_start_time):
+        response = self.neem_interface.start_vr_episode(game_participant, game_start_time)
+        # print("Creating an episode with response: ", response)
+        return response
 
-    def finish_episode(self, episode_iri):
-        return self.neem_interface.stop_vr_episode(episode_iri)
+    def create_actor_by_given_name(self, actor_name):
+        response = self.neem_interface.create_actor_by_given_name(actor_name)
+        # print("Creating an actor with response: ", response)
+        return response
+
+    def finish_episode(self, episode_iri, game_end_time):
+        response = self.neem_interface.stop_vr_episode(episode_iri, game_end_time)
+        # print("Finishing an episode with response: ", response)
+        return response
+    
+    # this method loads remote neem from neemhub to local kb(but do not populate local mongodb)
+    #def load_remote_neem_to_kb(self, neem_id):
+    #    self.prolog.ensure_once(f"knowrob_load_neem({atom(neem_id)})")
+
+    # def hand_participate_in_action(self, hand_type):
+    #     response = self.neem_interface.hand_participate_in_action(hand_type)
+    #     print("response with hand iri: ", response)
+    #     return response
 
     def get_time(self):
         return self.neem_interface.get_time()
