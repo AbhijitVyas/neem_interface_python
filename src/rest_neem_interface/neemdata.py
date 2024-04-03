@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 
-from neem_interface_python.rosprolog_client import Prolog, atom
-from neem_interface_python.neem_interface import NEEMInterface
+from .neem_interface_python.rosprolog_client import Prolog, atom
+from .neem_interface_python.neem_interface import NEEMInterface
 
 neem_uri = '/home/avyas/catkin_ws/src/pouring_apartment_neem/NEEM'
 

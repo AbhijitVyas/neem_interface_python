@@ -3,11 +3,12 @@ from flask import Flask, jsonify, request
 from flask_restful import Api
 import ast
 import argparse
-from neemdata import NEEMData
 
-app = Flask(__name__)
-api = Api(app)
-neem_data = NEEMData()
+from .neemdata import NEEMData
+
+app = None
+api = None
+neem_data = None
 
 @app.route("/knowrob/api/v1.0/<string:function>")
 def get_neem_data(function):
@@ -82,6 +83,12 @@ def post_finish_episode():
 #         return jsonify(response), 400
 
 def startup(host, debug, port):
+    global app 
+    app = Flask(__name__)
+    global api 
+    api = Api(app)
+    global neem_data
+    neem_data = NEEMData()
     app.run(host,debug, port)
     return app
 
@@ -91,4 +98,7 @@ if __name__ == '__main__':
     parser.add_argument('--nodebug', action="store_false",help="Do not run the server in debug mode")
     parser.add_argument('--port', type=int, default=8000, help="Port that the server listens on.")
     args = parser.parse_args()
+    app = Flask(__name__)
+    api = Api(app)
+    neem_data = NEEMData()
     startup(host=args.host,debug=args.nodebug, port=args.port)
