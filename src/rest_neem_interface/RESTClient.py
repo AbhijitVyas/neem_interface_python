@@ -83,6 +83,7 @@ def post_finish_episode():
 
 def startup(host, debug, port):
     app.run(host,debug, port)
+    return app
 
 if __name__ == '__main__':
     parser = argparse.ArgumentParser(prog="RESTClient", description="Starts the REST Server to interface with ROSProlog.")
