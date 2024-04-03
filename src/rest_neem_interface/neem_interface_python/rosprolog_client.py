@@ -10,7 +10,7 @@ from typing import Optional, Dict, List, Iterator
 from urllib.parse import urlparse
 import re
 import roslibpy
-from neem_interface_python.utils.rosbridge import ros_client
+from .utils.rosbridge import ros_client
 
 
 class PrologException(Exception):
