@@ -8,7 +8,6 @@ import os
 from enum import Enum
 from typing import Optional, Dict, List, Iterator
 from urllib.parse import urlparse
-import re
 import roslibpy
 from .utils.rosbridge import ros_client
 
@@ -172,14 +171,3 @@ class Prolog(object):
         if len(res) == 0:
             raise PrologException(f"Prolog returned false.\nQuery: {query_str}")
         return res
-
-
-def atom(string: str):
-    try:
-        if re.match(".+:'.+'", string):
-            # Has namespace prefix --> don't wrap in quotes
-            return string
-        return f"'{string}'"
-    except:
-        print(string)
-        raise RuntimeError()
