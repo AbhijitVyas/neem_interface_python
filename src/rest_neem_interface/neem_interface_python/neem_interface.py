@@ -2,8 +2,8 @@
 import sys
 import os
 sys.path.append(os.getcwd() + "/../../../src/")
-from neem_interface_python.rosprolog_client import Prolog, atom
-from neem_interface_python.utils.utils import Datapoint, Pose
+from .rosprolog_client import Prolog, atom
+from .utils.utils import Datapoint, Pose
 from concurrent.futures import ThreadPoolExecutor
 from typing import List, Tuple, Optional
 import time
