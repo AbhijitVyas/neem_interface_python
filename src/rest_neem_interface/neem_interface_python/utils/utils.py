@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 import sys
 import os
-sys.path.append(os.getcwd() + "/../../../src/")
+sys.path.append(os.getcwd() + "/../")
 from neem_interface_python.rosprolog_client import atom, Prolog
 from typing import List
 
