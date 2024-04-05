@@ -2,26 +2,23 @@
 """
 Rosprolog client loosely coupled to ROS and compatible with Python 3
 """
-
+import re
 import json
 import os
 from enum import Enum
 from typing import Optional, Dict, List, Iterator
 from urllib.parse import urlparse
 import roslibpy
-from .utils.rosbridge import ros_client
-
+from neem_interface_python.utils.rosbridge import ros_client
 
 class PrologException(Exception):
     pass
-
 
 class PrologNextSolutionResponse(Enum):
     NO_SOLUTION = 0
     WRONG_ID = 1
     QUERY_FAILED = 2
     OK = 3
-
 
 class Upper(object):
     def __init__(self, iterable):
@@ -171,3 +168,13 @@ class Prolog(object):
         if len(res) == 0:
             raise PrologException(f"Prolog returned false.\nQuery: {query_str}")
         return res
+    
+def atom(string: str):
+    try:
+        if re.match(".+:'.+'", string):
+            # Has namespace prefix --> don't wrap in quotes
+            return string
+        return f"'{string}'"
+    except:
+        print(string)
+        raise RuntimeError()

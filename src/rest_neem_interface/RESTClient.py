@@ -4,11 +4,11 @@ from flask_restful import Api
 import ast
 import argparse
 
-from .neemdata import NEEMData
+from neemdata import NEEMData
 
-app = None
-api = None
-neem_data = None
+app = Flask(__name__)
+api = Api(app)
+neem_data = NEEMData()
 
 @app.route("/knowrob/api/v1.0/<string:function>")
 def get_neem_data(function):
@@ -73,32 +73,10 @@ def post_finish_episode():
     response = NEEMData().finish_episode(episode_iri, game_end_time)
     return (jsonify(response), 200 if response else 400)
 
-# @app.route("/knowrob/api/v1.0/hand_participate", methods = ['GET', 'POST'])
-# def post_finish_episode():
-#     hand_type = request.json['hand_type']
-#     response = NEEMData().hand_participate_in_action(hand_type)
-#     if response is not None:
-#         return jsonify(response), 200
-#     else:
-#         return jsonify(response), 400
-
-def startup(host, debug, port):
-    global app 
-    app = Flask(__name__)
-    global api 
-    api = Api(app)
-    global neem_data
-    neem_data = NEEMData()
-    app.run(host,debug, port)
-    return app
-
 if __name__ == '__main__':
     parser = argparse.ArgumentParser(prog="RESTClient", description="Starts the REST Server to interface with ROSProlog.")
     parser.add_argument('--host', type=str, default="0.0.0.0", help="IP Address for the server.")
     parser.add_argument('--nodebug', action="store_false",help="Do not run the server in debug mode")
     parser.add_argument('--port', type=int, default=8000, help="Port that the server listens on.")
     args = parser.parse_args()
-    app = Flask(__name__)
-    api = Api(app)
-    neem_data = NEEMData()
-    startup(host=args.host,debug=args.nodebug, port=args.port)
+    app.run(host=args.host,debug=args.nodebug, port=args.port)

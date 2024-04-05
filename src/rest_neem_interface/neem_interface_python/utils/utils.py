@@ -1,20 +1,11 @@
 #!/usr/bin/env python3
-import re
+import sys
+import os
+sys.path.append(os.getcwd() + "/../../../src/")
+from neem_interface_python.rosprolog_client import atom, Prolog
 from typing import List
 from scipy.spatial.transform import Rotation
 import dateutil.parser
-
-
-
-def atom(string: str):
-    try:
-        if re.match(".+:'.+'", string):
-            # Has namespace prefix --> don't wrap in quotes
-            return string
-        return f"'{string}'"
-    except:
-        print(string)
-        raise RuntimeError()
     
 class Pose:
     def __init__(self, reference_frame: str, pos: List[float], ori: Rotation):
@@ -98,9 +89,9 @@ class Datapoint:
         return Datapoint(timestamp, frame, reference_frame, pos_rhs, ori_rhs)
 
 
-def expand_rdf_namespace(prolog, short_namespace: str) -> str:
+def expand_rdf_namespace(prolog: Prolog, short_namespace: str) -> str:
     return prolog.ensure_once(f"rdf_prefixes:rdf_current_prefix({atom(short_namespace)}, URI)")["URI"]
 
 
-def compact_rdf_namespace(prolog, long_namespace: str) -> str:
+def compact_rdf_namespace(prolog: Prolog, long_namespace: str) -> str:
     return prolog.ensure_once(f"rdf_prefixes:rdf_current_prefix(NS, {atom(long_namespace)})")["NS"]
